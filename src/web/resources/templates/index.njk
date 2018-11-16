@@ -1,0 +1,75 @@
+{#
+ # @file
+ # @version 0.1
+ # @copyright 2018 CN-Consult GmbH
+ # @author Yannick Lapp <yannick.lapp@cn-consult.eu>
+ #}
+
+{% from "macros/index/windowInformation.njk" import generateWindowConfigurationDiv %}
+
+{% extends "base.njk" %}
+
+{% block content %}
+
+    {# Window selection sidebar #}
+    {# TODO: Rename to window selection sidebar #}
+    <div id="window-selection">
+
+        <div class="window-select-buttons">
+
+            <h2>Fenster wählen</h2>
+
+            {# @todo: Rename "button" to checkbox to avoid confusion #}
+
+            {# Show a select button for each window #}
+            {% for windowIndex in range(0, windowsStatus.length) %}
+                <label for="window-checkbox-{{ windowIndex }}">Fenster {{ windowIndex + 1 }}</label>
+                <input class="window-select-button" type="checkbox" name="window-checkbox-{{ windowIndex }}" id="window-checkbox-{{ windowIndex }}" value={{ windowIndex }}>
+            {% endfor %}
+
+            {# (Un-)Select all windows at once #}
+            <label for="all-windows-checkbox">Alle Fenster</label>
+            <input class="window-select-button" type="checkbox" name="all-windows-checkbox" id="all-windows-checkbox" value="all">
+
+        </div>
+
+    </div>
+
+
+    {# Current window configuration and options #}
+    <div id="window-overview">
+
+        <div id="window-configurations">
+
+            <h2>Konfigurationen der Fenster (Kurzübersicht)</h2>
+
+            {# Create divs to show the window configuration of each selected window #}
+            {% for windowIndex in range(0, windowsStatus.length) %}
+                {{ generateWindowConfigurationDiv(windowIndex, windowsStatus[windowIndex]) }}
+            {%  endfor %}
+        </div>
+
+        <div id="window-controls">
+
+            <h2>Fenster-Steuerung</h2>
+
+            <div id="window-control-button-container">
+                <div id="window-control-buttons">
+                    {# <button class="btn btn-primary">Anzuzeigende Seite wählen</button> #}
+                    <button class="btn btn-primary" id="freeze-current-page">
+                        <i class="far fa-snowflake"></i> Aktuelle Seite einfrieren
+                    </button>
+                    <button class="btn btn-primary" id="resume-tab-switch-loops">
+                        <i class="far fa-play-circle"></i> Tab-Umschalt Schleife fortsetzen
+                    </button>
+                </div>
+
+                <p class="caption">
+                    <small>Hinweis: Die Funktionsknöpfe beziehen sich immer auf alle aktuell ausgewählten Fenster</small>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}

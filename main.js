@@ -8,8 +8,15 @@
 const { app } = require("electron");
 const JsonLoader = require(__dirname + "/src/Util/JsonLoader");
 const Pavo = require(__dirname + "/src/Pavo/Pavo");
+const PavoApi = require(__dirname + "/src/Pavo/PavoApi");
+const WebServer = require(__dirname + "/src/web/WebServer");
+
 let jsonLoader = new JsonLoader();
 let pavo = new Pavo();
+let pavoApi = new PavoApi(pavo);
+let webServer = new WebServer();
+
+
 const log4js = require("log4js");
 
 // Configure the loggers
@@ -24,6 +31,7 @@ log4js.configure({
         tabDisplayer: { type: "file", filename: __dirname + "/../../log/TabDisplayer.log" },
         tab: { type: "file", filename: __dirname + "/../../log/Tab.log" },
         autoLogin: { type: "file", filename: __dirname + "/../../log/AutoLogin.log" },
+        pavoApi: { type: "file", filename: __dirname + "/../../log/PavoApi.log" }
         */
     },
     categories: {
@@ -33,6 +41,7 @@ log4js.configure({
         tabDisplayer: { appenders: [ "console"/*, "tabDisplayer"*/ ], level: "debug" },
         tab: { appenders: [ "console"/*, "tab"*/ ], level: "debug" },
         autoLogin: { appenders: [ "console"/*, "autoLogin"*/ ], level: "debug" },
+        pavoApi: { appenders: ["console"/*, "pavoApi"*/ ], level: "debug" }
     }
 });
 
@@ -44,7 +53,9 @@ function initialize()
     // Load configuration
     let appConfiguration = jsonLoader.getJson(app.getPath("home") + "/config/config.json");
 
+    // Initialize the pavo app and the web server
     pavo.initialize(appConfiguration);
+    webServer.initialize(pavoApi);
 }
 
 app.on("ready", initialize);

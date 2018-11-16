@@ -1,0 +1,46 @@
+{#
+ # @file
+ # @version 0.1
+ # @copyright 2018 CN-Consult GmbH
+ # @author Yannick Lapp <yannick.lapp@cn-consult.eu>
+ #}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Dashboard Konfiguration - {{ dashboardName }}</title>
+
+        {# jQuery #}
+        <script src="jquery/jquery.min.js"></script>
+
+        {# jQuery UI #}
+        <link rel="stylesheet" href="jquery-ui/jquery-ui.min.css">
+        <script src="jquery-ui/jquery-ui.min.js"></script>
+
+        {# Bootstrap #}
+        <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+        <script src="bootstrap/js/bootstrap.min.js"></script>
+
+        {# Font awesome icons (@see: https://fontawesome.com/ #}
+        <link rel="stylesheet" href="font-awesome/css/all.min.css">
+
+        {# TODO: Each page must define its own head content (at least own javascript and css files) #}
+        {# Custom scripts#}
+        <script src="javascript/index.js"></script>
+
+        {# Custom styles #}
+        <link rel="stylesheet" href="css/index.css">
+
+    </head>
+    <body>
+
+        <div id="title-bar">
+            <h1>Dashboard: {{ dashboardName }}</h1>
+        </div>
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </body>
+</html>
