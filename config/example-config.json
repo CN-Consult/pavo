@@ -1,0 +1,73 @@
+{
+  "windows":[
+    {
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 500,
+        "height": 1200
+      },
+      "pageDefaults":{
+        "displayTime": 20,
+        "cssFiles": [
+          "config/default.css"
+        ],
+        "reloadTime": 5,
+        "reloadAfterAppInit": false
+      },
+      "pages": [
+        {
+          "url": "http://example.com/pageA",
+          "cssFiles": [
+            "config/pageA.css"
+          ]
+        },
+        {
+          "url": "http://example.com/pageB",
+          "reloadTime": 0
+        },
+        {
+          "url": "http://example.com/pageC",
+          "jsFiles": [
+            "config/pageC.js"
+          ]
+        }
+      ]
+    },
+    {
+      "position": {
+        "x": 500,
+        "y": 0,
+        "width": 1420,
+        "height": 500
+      },
+      "pageDefaults":{
+        "displayTime": 10,
+        "cssFiles": [
+          "config/default.css"
+        ],
+        "reloadTime": 0
+      },
+      "pages": [
+        {
+          "url": "http://example.com/targetPage",
+          "autoLogin": {
+            "loginUrl": "http://example.com/login?next=targetPage",
+            "form": {
+              "selector": "div.login_page form#login_form"
+            },
+            "name": {
+              "selector": "input#username",
+              "value": "example_user"
+            },
+            "password": {
+              "selector": "input#password",
+              "value": "example_password"
+            },
+            "redirectsToMainUrl": true
+          }
+        }
+      ]
+    }
+  ]
+}

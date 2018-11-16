@@ -1,0 +1,172 @@
+/**
+ * @file
+ * @version 0.1
+ * @copyright 2018 CN-Consult GmbH
+ * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
+ */
+
+/**
+ * Stores a list of tabs and provides methods to get/set the entries.
+ */
+class TabList
+{
+    /**
+     * TabList constructor.
+     */
+    constructor()
+    {
+        this.tabs = [];
+        this.currentTabIndex = 0;
+    }
+
+
+    // Public Methods
+
+    /**
+     * Adds a tab to the list of tabs.
+     */
+    addTab(_tab)
+    {
+        this.tabs.push(_tab);
+        this.currentTabIndex = this.tabs.length - 1;
+    }
+
+    /**
+     * Removes one tab from the list of tabs.
+     * Also updates the current tab id.
+     *
+     * @param {Tab} _tab The tab
+     */
+    removeTab(_tab)
+    {
+        // TODO: Find usage for this  method
+        let tabIndex = _tab.id;
+        let numberOfTabs = this.tabs.length;
+
+        // Move all array entries above the tab index down by one index
+        for (let i = tabIndex; i < numberOfTabs - 1; i++)
+        {
+            this.tabs[tabIndex] = this.tabs[tabIndex + 1];
+        }
+
+        // Remove the last tab entry
+        this.tabs.pop();
+
+        if (this.currentTabIndex > tabIndex) this.currentTabIndex -= 1;
+    }
+
+
+    // Fetch information about the list
+
+    /**
+     * Returns whether this tab list contains at least one tab with a reload time greater than 0 seconds.
+     *
+     * @return {boolean} True if this tab list contains at least one tab with a reload time greater than 0 seconds, false otherwise
+     */
+    containsReloadTabs()
+    {
+        for (let tab of this.tabs)
+        {
+            if (tab.reloadTime > 0) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns whether this tab list contains at least one tab with a reload time equal 0 seconds.
+     *
+     * @return {boolean} True if this tab list contains at least one tab with a reload time equal 0 seconds, false otherwise
+     */
+    containsStaticTabs()
+    {
+        for (let tab of this.tabs)
+        {
+            if (tab.reloadTime === 0) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns all static tabs of this tab list.
+     *
+     * @return {Tab[]} The list of static tabs
+     */
+    getStaticTabs()
+    {
+        let staticTabs = [];
+        this.tabs.forEach(function(_tab){
+            if (_tab.reloadTime === 0) staticTabs.push(_tab);
+        });
+
+        return staticTabs;
+    }
+
+    /**
+     * Returns the list of tabs that need to be reloaded after app init.
+     *
+     * @return {Tab[]} The list of tabs that need to be reloaded after app init
+     */
+    getReloadAfterAppInitTabs()
+    {
+        let reloadAfterAppInitTabs = [];
+        this.tabs.forEach(function(_tab){
+           if (_tab.reloadAfterAppInit) reloadAfterAppInitTabs.push(_tab);
+        });
+
+        return reloadAfterAppInitTabs;
+    }
+
+
+    // Iterate over the list
+
+    /**
+     * Returns the current tab.
+     *
+     * @return {Tab|null} The current tab or null if the tab list doesn't contain any tabs
+     */
+    getCurrentTab()
+    {
+        if (this.tabs.length > 0)
+        {
+            return this.tabs[this.currentTabIndex];
+        }
+        else return null;
+    }
+
+    /**
+     * Increases the current tab index by one and returns the new current tab.
+     *
+     * @return {Tab|null} The current tab or null if the tab list doesn't contain any tabs
+     */
+    getNextTab()
+    {
+        if (this.tabs.length > 0)
+        {
+            this.currentTabIndex++;
+            if (this.currentTabIndex === this.tabs.length) this.currentTabIndex = 0;
+
+            return this.getCurrentTab();
+        }
+        else return null;
+    }
+}
+
+
+/**
+ * The list of tabs.
+ *
+ * @type {Tab[]} tabs
+ */
+TabList.tabs = null;
+
+/**
+ * The current tab index that is updated by the getNextTab() method
+ *
+ * @type {int} currentTabIndex
+ */
+TabList.currentTabIndex = 0;
+
+
+module.exports = TabList;
