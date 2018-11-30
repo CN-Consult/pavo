@@ -24,6 +24,16 @@ class PavoApi
 
 
     /**
+     * Returns the windows of the parent pavo.
+     *
+     * @return {Window[]} The list of windows
+     */
+    getWindows()
+    {
+        return this.parentPavo.getWindowManager().getWindows();
+    }
+
+    /**
      * Returns the status for each window of the pavo app.
      * This includes the configuration and whether the tab switch loop is active
      *
@@ -36,7 +46,7 @@ class PavoApi
         let windowsStatus = [];
 
         let windowConfigurations = this.parentPavo.getLoadedConfiguration().windows;
-        let windows = this.parentPavo.getWindowManager().getWindows();
+        let windows = this.getWindows();
 
         if (Array.isArray(windowConfigurations))
         {
@@ -48,6 +58,13 @@ class PavoApi
                     windowsStatus[windowId] = {};
                     windowsStatus[windowId].configuration = windowConfigurations[windowId];
                     windowsStatus[windowId].isTabSwitchLoopActive = windows[windowId].getTabSwitchLoop().getIsActive();
+
+                    let currentTab = windows[windowId].getTabSwitchLoop().getTabDisplayer().getCurrentTab();
+                    if (currentTab)
+                    {
+                        windowsStatus[windowId].currentTab = currentTab.getId();
+                        windowsStatus[windowId].remainingDisplayTime = windows[windowId].getTabSwitchLoop().getRemainingDisplayTime();
+                    }
                 }
             }
         }
@@ -56,88 +73,94 @@ class PavoApi
     }
 
     /**
-     * Halts the tab switch loop for a specified list of window ids.
+     * Halts the tab switch loop for a specified window.
      *
-     * @param {string[]} _windowIds The window ids
-     *
-     * @return {int[]|string} The list of halted tab loop window ids or an error message if the pavo app is not initialized yet
+     * @param {int} _windowId The window id
      */
-    haltTabSwitchLoopsFor(_windowIds)
+    haltTabSwitchLoopOfWindow(_windowId)
     {
         if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
 
-        pavoApiLogger.info("Received tab switch loop halt request for windows " + JSON.stringify(_windowIds));
+        pavoApiLogger.info("Received tab switch loop halt request for window " + _windowId);
 
-        let windows = this.parentPavo.getWindowManager().getWindows();
-        let haltedTabLoopWindowIds = [];
-
-        _windowIds.forEach(function(_windowId){
-            let window = windows[_windowId];
-
-            if (window)
+        let window = this.getWindows()[_windowId];
+        if (window)
+        {
+            let tabSwitchLoop = window.getTabSwitchLoop();
+            if (tabSwitchLoop.getIsActive())
             {
-                let tabSwitchLoop = window.getTabSwitchLoop();
-                if (tabSwitchLoop.getIsActive())
-                {
-                    pavoApiLogger.info("Halting tab switch loop for window #" + window.getDisplayId());
-                    tabSwitchLoop.halt();
-                    haltedTabLoopWindowIds.push(window.getId());
-                }
+                pavoApiLogger.info("Halting tab switch loop for window #" + window.getDisplayId());
+                tabSwitchLoop.halt();
             }
-        });
-
-        return haltedTabLoopWindowIds;
+        }
     }
 
     /**
-     * Resumes the tab switch loop for a specified list of window ids.
+     * Resumes the tab switch loop for a specified window.
      *
-     * @param {string[]} _windowIds The list of window ids
-     *
-     * @return {Promise} The promise that returns the list of resumed tab loop window ids or an error message if the pavo app is not initialized yet
+     * @param {int} _windowId The window id
      */
-    resumeTabSwitchLoopsFor(_windowIds)
+    resumeTabSwitchLoopOfWindow(_windowId)
     {
         if (! this.parentPavo.getIsInitialized()) return new Promise(function(_resolve, _reject){
             _reject("ERROR: Pavo app not initialized yet");
         });
 
-        pavoApiLogger.info("Received tab switch loop resume request for windows " + JSON.stringify(_windowIds));
+        pavoApiLogger.info("Received tab switch loop resume request for window " + _windowId);
 
-        let windows = this.parentPavo.getWindowManager().getWindows();
-        let resumedTabLoopWindowIds = [];
-        let numberOfWindowIds = _windowIds.length;
-        let numberOfResumedTabSwitchLoops = 0;
+        let window = this.getWindows()[_windowId];
+        if (window)
+        {
+            let tabSwitchLoop = window.getTabSwitchLoop();
+            if (! tabSwitchLoop.getIsActive())
+            {
+                pavoApiLogger.info("Resuming tab switch loop for window #" + window.getDisplayId());
+                tabSwitchLoop.continue();
+            }
+        }
+    }
 
-        return new Promise(function(_resolve){
-            _windowIds.forEach(function(_windowId){
-                let window = windows[_windowId];
-
-                if (window)
-                {
-                    let tabSwitchLoop = window.getTabSwitchLoop();
-                    if (! tabSwitchLoop.getIsActive())
-                    {
-                        pavoApiLogger.info("Resuming tab switch loop for window #" + window.getDisplayId());
-                        tabSwitchLoop.continue().then(function(){
-                            resumedTabLoopWindowIds.push(window.getId());
-                            numberOfResumedTabSwitchLoops++;
-                            if (numberOfWindowIds === numberOfResumedTabSwitchLoops) _resolve(resumedTabLoopWindowIds);
-                        })
-                    }
-                    else
-                    {
-                        numberOfResumedTabSwitchLoops++;
-                        if (numberOfWindowIds === numberOfResumedTabSwitchLoops) _resolve(resumedTabLoopWindowIds);
-                    }
-                }
-                else
-                {
-                    numberOfResumedTabSwitchLoops++;
-                    if (numberOfWindowIds === numberOfResumedTabSwitchLoops) _resolve(resumedTabLoopWindowIds);
-                }
-            });
+    /**
+     * Loads a url into a specific window.
+     *
+     * @param {int} _windowId The id of the window
+     * @param {String} _url The url to load into the window
+     *
+     * @returns {Promise} The promise that loads the url into the specified window
+     */
+    loadURLIntoWindow(_windowId, _url)
+    {
+        if (! this.parentPavo.getIsInitialized()) return new Promise(function(_resolve, _reject){
+            _reject("ERROR: Pavo app not initialized yet");
         });
+
+        pavoApiLogger.info("Received url load request for window " + _windowId + " with target url \"" + _url + "\"");
+
+        let window = this.getWindows()[_windowId];
+
+        this.haltTabSwitchLoopOfWindow(_windowId);
+
+        return window.getTabDisplayer().displayCustomURL(_url);
+    }
+
+    /**
+     * Reloads a specified window.
+     *
+     * @param {int} _windowId The id of the window
+     *
+     * @return {Promise} The promise that reloads the specified window
+     */
+    reloadWindow(_windowId)
+    {
+        if (! this.parentPavo.getIsInitialized()) return new Promise(function(_resolve, _reject){
+            _reject("ERROR: Pavo app not initialized yet");
+        });
+
+        pavoApiLogger.info("Received reload window request for window " + _windowId);
+
+        let window = this.getWindows()[_windowId];
+
+        return window.getTabDisplayer().reloadCurrentPage();
     }
 }
 

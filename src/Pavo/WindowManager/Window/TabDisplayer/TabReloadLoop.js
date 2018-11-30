@@ -95,13 +95,31 @@ class TabReloadLoop
     }
 
     /**
+     * Halts the tab reload loop.
+     */
+    halt()
+    {
+        clearInterval(this.reloadInterval);
+    }
+
+    /**
+     * Continues the tab reload loop.
+     *
+     * @return {Promise} The promise that continues the tab reload loop
+     */
+    continue()
+    {
+        return this.start(this.reloadTab);
+    }
+
+    /**
      * Stops the reload loop for the currently reloaded tab.
      *
      * @return {Promise} The promise that stops the reload loop
      */
     stop()
     {
-        clearInterval(this.reloadInterval);
+        this.halt();
 
         let self = this;
         return new Promise(function(_resolve){

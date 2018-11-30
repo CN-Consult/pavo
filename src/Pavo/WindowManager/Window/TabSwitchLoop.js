@@ -5,22 +5,26 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const EventEmitter = require("events");
+
 /**
  * Handles a tab switch loop for a window.
  */
-class TabSwitchLoop
+class TabSwitchLoop extends EventEmitter
 {
     /**
      * TabSwitchLoop constructor.
      */
     constructor()
     {
+        super();
+
         this.isActive = false;
 
         // Must use a interval for a timeout because timeouts are not clearable
         this.nextTabTimeout = null;
         this.nextTabTimeoutStart = 0;
-        this.remainingTabShowTime = 0;
+        this.remainingDisplayTime = 0;
     }
 
 
@@ -34,6 +38,30 @@ class TabSwitchLoop
     getIsActive()
     {
         return this.isActive;
+    }
+
+    /**
+     * Returns the tab displayer.
+     *
+     * @returns {TabDisplayer} The tab displayer
+     */
+    getTabDisplayer()
+    {
+        return this.tabDisplayer;
+    }
+
+    /**
+     * Returns the remaining display time of the current tab.
+     *
+     * @return {int} The remaining display time of the current tab
+     */
+    getRemainingDisplayTime()
+    {
+        if (this.isActive)
+        {
+            return this.remainingDisplayTime - (Date.now() - this.nextTabTimeoutStart);
+        }
+        else return this.remainingDisplayTime;
     }
 
 
@@ -64,7 +92,7 @@ class TabSwitchLoop
                     _resolve("Tab switch loop started");
                 });
             }
-            else _resolve("Tab switch loop already started");
+            else _resolve("Tab switch loop already running");
         });
     }
 
@@ -75,13 +103,14 @@ class TabSwitchLoop
     {
         if (this.isActive)
         {
-            if (this.nextTabTimeout)
-            {
-                clearInterval(this.nextTabTimeout);
-                this.remainingTabShowTime = this.nextTabTimeoutStart + this.tabDisplayer.currentTab.getDisplayTime() - Date.now();
-            }
+            if (this.nextTabTimeout) clearInterval(this.nextTabTimeout);
+
+            this.remainingDisplayTime -= (Date.now() - this.nextTabTimeoutStart);
+
+            if (this.tabDisplayer.currentTabType === "reload") this.tabDisplayer.getTabReloadLoop().halt();
 
             this.isActive = false;
+            this.emit("halt", { tab: this.tabDisplayer.getCurrentTab(), remainingDisplayTime: this.remainingDisplayTime });
         }
     }
 
@@ -98,7 +127,12 @@ class TabSwitchLoop
             if (self.isActive) _resolve("No continue necessary, tab switch loop already running");
             else
             {
+                self.emit("continue", { tab: self.tabDisplayer.getCurrentTab(), remainingDisplayTime: self.remainingDisplayTime });
                 self.isActive = true;
+                if (self.tabDisplayer.getIsCustomPageDisplayed()) self.tabDisplayer.restoreOriginalPage();
+
+                if (self.tabDisplayer.currentTabType === "reload") self.tabDisplayer.getTabReloadLoop().continue();
+
                 self.showNextTab().then(function(){
                     _resolve("Tab switch loop continued");
                 });
@@ -120,29 +154,34 @@ class TabSwitchLoop
         // Clear the interval of the previous tab switch
         clearInterval(this.nextTabTimeout);
 
-        let nextTab = this.tabDisplayer.getTabList().getNextTab();
-        let showNextTabStartTime = Date.now();
-
         let self = this;
         return new Promise(function(_resolve){
 
-            // TODO: Change this setTimeout to setInterval
-            self.nextTabTimeout = setTimeout(function(){
+            self.nextTabTimeoutStart = Date.now();
+            self.nextTabTimeout = setInterval(function(){
+
+                clearInterval(self.nextTabTimeout);
+                let nextTab = self.tabDisplayer.getTabList().getNextTab();
                 self.tabDisplayer.showTab(nextTab).then(function(){
 
-                    let millisecondsPassed = Date.now() - showNextTabStartTime;
-
                     let currentTab = self.tabDisplayer.getCurrentTab();
-                    let remainingDisplayTime = currentTab.getDisplayTime() - millisecondsPassed;
+
+                    let millisecondsPassed = Date.now() - self.nextTabTimeoutStart - self.remainingDisplayTime;
+                    self.remainingDisplayTime = currentTab.getDisplayTime() - millisecondsPassed;
 
                     // Call this method again after <displayTime>
                     if (self.isActive)
                     {
-                        self.nextTabTimeout = setInterval(self.showNextTab.bind(self), remainingDisplayTime);
+                        self.emit("show", { tab: currentTab, remainingDisplayTime: self.remainingDisplayTime });
+
                         self.nextTabTimeoutStart = Date.now();
+                        self.nextTabTimeout = setInterval(function(){
+                            self.remainingDisplayTime = 0;
+                            self.showNextTab();
+                        }, self.remainingDisplayTime);
                     }
                 });
-            }, self.remainingTabShowTime);
+            }, self.remainingDisplayTime);
 
             _resolve("Next tab shown.");
         });

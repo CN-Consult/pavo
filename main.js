@@ -54,7 +54,9 @@ function initialize()
     let appConfiguration = jsonLoader.getJson(app.getPath("home") + "/config/config.json");
 
     // Initialize the pavo app and the web server
-    pavo.initialize(appConfiguration);
+    pavo.initialize(appConfiguration).then(function(){
+        webServer.initializeEventListeners();
+    });
     webServer.initialize(pavoApi);
 }
 

@@ -39,7 +39,6 @@ class StaticBrowserWindowManager extends BrowserWindowManager
         let browserWindow = this.createBrowserWindow();
 
         let self = this;
-
         return new Promise(function(_resolve){
             _tab.attachToBrowserWindow(browserWindow).then(function(){
                 self.tabBrowserWindows[_tab.displayId] = browserWindow;

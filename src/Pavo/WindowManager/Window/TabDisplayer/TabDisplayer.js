@@ -23,6 +23,7 @@ class TabDisplayer
     {
         this.currentTabType = "";
         this.currentTab = null;
+        this.isCustomPageDisplayed = false;
     }
 
 
@@ -46,6 +47,26 @@ class TabDisplayer
     getTabList()
     {
         return this.tabList;
+    }
+
+    /**
+     * Returns the tab reload loop.
+     *
+     * @return {TabReloadLoop} The tab reload loop
+     */
+    getTabReloadLoop()
+    {
+        return this.tabReloadLoop;
+    }
+
+    /**
+     * Returns whether the tab displayer displays a custom page at the moment.
+     *
+     * @return {boolean} True if the tab displayer displays a custom page at the moment, false otherwise
+     */
+    getIsCustomPageDisplayed()
+    {
+        return this.isCustomPageDisplayed;
     }
 
 
@@ -139,6 +160,72 @@ class TabDisplayer
                 });
             }
             else _resolve("No tab reload necessary.");
+        });
+    }
+
+    /**
+     * Displays a custom url in the current top browser window.
+     *
+     * @param {String} _url The url to display in the current top browser window
+     *
+     * @return {Promise} The promise that displays a custom url in the current top browser window
+     */
+    displayCustomURL(_url)
+    {
+        tabDisplayerLogger.debug("Displaying custom url \"" + _url + "\" in tab #" + this.currentTab.getDisplayId());
+        this.isCustomPageDisplayed = true;
+        let currentTopBrowserWindowPromise = this.getCurrentTopBrowserWindow();
+
+        return new Promise(function(_resolve, _reject){
+            if (! currentTopBrowserWindowPromise) _reject("ERROR: Window has no top browser window");
+            else
+            {
+                currentTopBrowserWindowPromise.then(function(_topBrowserWindow){
+                    _topBrowserWindow.loadURL(_url);
+                    _resolve("URL loaded into browser window");
+                });
+            }
+        });
+    }
+
+    /**
+     * Restores the original page of the current tab.
+     *
+     * @return {Promise} The promise that restores the original page of the current tab
+     */
+    restoreOriginalPage()
+    {
+        let currentTopBrowserWindowPromise = this.getCurrentTopBrowserWindow();
+
+        let self = this;
+        return new Promise(function(_resolve, _reject){
+            if (! currentTopBrowserWindowPromise) _reject("ERROR: Window has no top browser window");
+            else
+            {
+                currentTopBrowserWindowPromise.then(function(_topBrowserWindow){
+
+                    // TODO: Only if url is different
+                    _topBrowserWindow.loadURL(self.currentTab.getURL());
+                    self.isCustomPageDisplayed = false;
+                    _resolve("Tab restored");
+                });
+            }
+        });
+    }
+
+    /**
+     * Reloads the current page.
+     *
+     * @return {Promise} The promise that reloads the current page
+     */
+    reloadCurrentPage()
+    {
+        let self = this;
+        return new Promise(function(_resolve){
+            self.getCurrentTopBrowserWindow().then(function(_topBrowserWindow){
+                _topBrowserWindow.webContents.reload();
+                _resolve("Current page reloaded");
+            });
         });
     }
 
@@ -253,6 +340,18 @@ class TabDisplayer
         else return new Promise(function(_resolve){
             _resolve("No tab hiding necessary (same browser window manager).");
         });
+    }
+
+    /**
+     * Returns the browser window that is currently on top of the stack of browser windows.
+     *
+     * @returns {Promise|null} The browser window or null if no browser window is on top
+     */
+    getCurrentTopBrowserWindow()
+    {
+        if (this.currentTabType === "static") return this.staticBrowserWindowManager.getCurrentBrowserWindow();
+        else if (this.currentTabType === "reload") return this.reloadBrowserWindowManager.getCurrentBrowserWindow();
+        else return null;
     }
 }
 

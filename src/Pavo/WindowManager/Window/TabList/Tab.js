@@ -30,6 +30,7 @@ class Tab extends EventEmitter
 
         this.id = _id;
         this.displayId = _parentWindow.getDisplayId() + "." + (_id + 1);
+        this.parentWindow = _parentWindow;
 
         // Parse tab configuration
 
@@ -68,6 +69,16 @@ class Tab extends EventEmitter
     // Getters and Setters
 
     /**
+     * Returns the id of this tab.
+     *
+     * @returns {String} The id of this tab
+     */
+    getId()
+    {
+        return this.id;
+    }
+
+    /**
      * Returns the display id of this tab.
      *
      * @returns {string} The display id of this tab
@@ -75,6 +86,26 @@ class Tab extends EventEmitter
     getDisplayId()
     {
         return this.displayId;
+    }
+
+    /**
+     * Returns the parent window.
+     *
+     * @return {Window} The parent window
+     */
+    getParentWindow()
+    {
+        return this.parentWindow;
+    }
+
+    /**
+     * Returns the url of this tab.
+     *
+     * @return {String} The url of this tab
+     */
+    getURL()
+    {
+        return this.url;
     }
 
     /**
@@ -333,6 +364,13 @@ class Tab extends EventEmitter
  * @type {int} id
  */
 Tab.id = -1;
+
+/**
+ * The parent window
+ *
+ * @type {Window} parentWindow
+ */
+Tab.parentWindow = null;
 
 /**
  * The display id of the tab

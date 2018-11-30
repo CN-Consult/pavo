@@ -33,13 +33,24 @@
         </table>
 
         <h3>Tabs</h3>
-        <table>
+        <table class="tab-list"
+               data-current-tab="{{ _windowStatus.currentTab }}"
+               data-remaining-display-time="{{ _windowStatus.remainingDisplayTime }}"
+               data-tab-switch-loop-active="{{ _windowStatus.isTabSwitchLoopActive }}">
             {% for pageIndex in range(0, _windowStatus.configuration.pages.length) %}
                 {% set page = _windowStatus.configuration.pages[pageIndex] %}
-                <tr>
-                    <td>{{ pageIndex + 1}}: {{ page.url }}</td>
+                <tr {% if (_windowStatus.currentTab === pageIndex) %} class="active"{% endif %}
+                        id="tab-{{ pageIndex }}">
+                    <td>{{ pageIndex + 1}}) </td>
+                    <td>{{ page.url }}</td>
+                    <td class="remaining-time"></td>
                 </tr>
             {% endfor %}
+
+            <tr id="custom-page" hidden>
+                <td></td>
+                <td></td>
+            </tr>
         </table>
 
         <h3>Komponenten</h3>

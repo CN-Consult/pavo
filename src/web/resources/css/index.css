@@ -91,6 +91,24 @@ div.window-configuration {
     display: inline-block;
 }
 
+/* Currently shown tab */
+table.tab-list tr.active {
+    background-color: #FFAA00;
+}
+
+table.tab-list td.remaining-time {
+    background: white;
+    color: black;
+    height: 100%;
+
+    /*
+     * Using padding as margin because:
+     *  a) The remaining time must be in the table in order for it to be vertically centered in case of multi line cells
+     *  b) The margin attribute has no effect for table cells
+     */
+    padding-left: 20px;
+}
+
 /* Tab switch loop active circle */
 table.components td:first-child {
     padding-right: 5px;

@@ -24,12 +24,12 @@
             {# Show a select button for each window #}
             {% for windowIndex in range(0, windowsStatus.length) %}
                 <label for="window-checkbox-{{ windowIndex }}">Fenster {{ windowIndex + 1 }}</label>
-                <input class="window-select-button" type="checkbox" name="window-checkbox-{{ windowIndex }}" id="window-checkbox-{{ windowIndex }}" value={{ windowIndex }}>
+                <input class="window-select-button" type="checkbox" name="window-checkbox-{{ windowIndex }}" id="window-checkbox-{{ windowIndex }}" value={{ windowIndex }} hidden>
             {% endfor %}
 
             {# (Un-)Select all windows at once #}
             <label for="all-windows-checkbox">Alle Fenster</label>
-            <input class="window-select-button" type="checkbox" name="all-windows-checkbox" id="all-windows-checkbox" value="all">
+            <input class="window-select-button" type="checkbox" name="all-windows-checkbox" id="all-windows-checkbox" value="all" hidden>
 
         </div>
 
@@ -62,6 +62,12 @@
                     <button class="btn btn-primary" id="resume-tab-switch-loops">
                         <i class="far fa-play-circle"></i> Tab-Umschalt Schleife fortsetzen
                     </button>
+
+                    <button class="btn btn-primary" id="load-url">URL in Fenster laden</button>
+                    <label for="load-url-url">URL</label>
+                    <input type="text" id="load-url-url">
+
+                    <button class="btn btn-primary" id="reload-windows">Aktuelle Seite neu laden</button>
                 </div>
 
                 <p class="caption">
