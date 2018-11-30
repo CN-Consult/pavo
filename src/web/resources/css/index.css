@@ -96,6 +96,10 @@ table.tab-list tr.active {
     background-color: #FFAA00;
 }
 
+table.tab-list tr.defined-page:hover {
+    cursor: pointer;
+}
+
 table.tab-list td.remaining-time {
     background: white;
     color: black;

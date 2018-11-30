@@ -48,12 +48,7 @@ class LoadURLEventProcessor extends WebClientEventProcessor
         windowIds.forEach(function(_windowId){
             status[_windowId] = { windowId: _windowId };
 
-            self.pavoApi.loadURLIntoWindow(_windowId, _data["url"]).then(function(){
-                status[_windowId]["success"] = true;
-            }).catch(function(_errorMessage){
-                status[_windowId]["success"] = false;
-                status[_windowId]["message"] = _errorMessage;
-            });
+            self.pavoApi.loadURLIntoWindow(_windowId, _data["url"]);
         });
 
         // TODO: Tab must emit urlLoad event which must be passed to web clients

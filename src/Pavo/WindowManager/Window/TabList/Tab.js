@@ -51,6 +51,9 @@ class Tab extends EventEmitter
         // Url
         this.url = _tabConfiguration.url;
 
+        if (_tabConfiguration.name) this.name = _tabConfiguration.name;
+        else this.name = this.url;
+
         let parsedUrl = url.parse(this.url);
         // TODO: Rename to baseUrl
         this.realBaseUrl = parsedUrl.protocol + "//" + parsedUrl.host + parsedUrl.pathname;
@@ -106,6 +109,16 @@ class Tab extends EventEmitter
     getURL()
     {
         return this.url;
+    }
+
+    /**
+     * Returns the name of this tab.
+     *
+     * @return {String} The name of this tab
+     */
+    getName()
+    {
+        return this.name;
     }
 
     /**
@@ -361,14 +374,14 @@ class Tab extends EventEmitter
 /**
  * The id of the tab
  *
- * @type {int} id
+ * @var {int} id
  */
 Tab.id = -1;
 
 /**
  * The parent window
  *
- * @type {Window} parentWindow
+ * @var {Window} parentWindow
  */
 Tab.parentWindow = null;
 
@@ -376,7 +389,7 @@ Tab.parentWindow = null;
  * The display id of the tab
  * This is used in log messages and in the user interface
  *
- * @type {string} displayId
+ * @var {string} displayId
  */
 Tab.displayId = "";
 
@@ -390,7 +403,7 @@ Tab.cssFiles = null;
 /**
  * The custom javascript files for this tab
  *
- * @type {String[]} jsFiles
+ * @var {String[]} jsFiles
  */
 Tab.jsFiles = null;
 
@@ -398,7 +411,7 @@ Tab.jsFiles = null;
  * The base url of the tab
  * This is used to determine whether the page was redirected after an automatic login
  *
- * @type {string} realBaseUrl
+ * @var {string} realBaseUrl
  */
 Tab.realBaseUrl = "";
 
@@ -410,37 +423,45 @@ Tab.realBaseUrl = "";
 Tab.url = "";
 
 /**
+ * Stores the name of this tab
+ * This is used to display the tab in the overview of the web interface
+ *
+ * @var {string} name
+ */
+Tab.name = "";
+
+/**
  * The time for which this tab is displayed before the next tab is shown in milliseconds
  *
- * @type {int} displayTime
+ * @var {int} displayTime
  */
 Tab.displayTime = 0;
 
 /**
  * The time interval in which this tab is reloaded in milliseconds
  *
- * @type {int} reloadTime
+ * @var {int} reloadTime
  */
 Tab.reloadTime = 0;
 
 /**
  * Defines whether this tab must be reloaded after the app was initialized
  *
- * @type {boolean} reloadAfterAppInit
+ * @var {boolean} reloadAfterAppInit
  */
 Tab.reloadAfterAppInit = false;
 
 /**
  * Defines whether the automatic login for this tab was successfully performed in one browser window
  *
- * @type {boolean} isLoginDone
+ * @var {boolean} isLoginDone
  */
 Tab.isLoginDone = false;
 
 /**
  * The automatic login which is used to perform a auto login if one is defined in the config file
  *
- * @type {AutomaticLogin} automaticLogin
+ * @var {AutomaticLogin} automaticLogin
  */
 Tab.automaticLogin = null;
 

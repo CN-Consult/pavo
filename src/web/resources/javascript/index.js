@@ -20,6 +20,7 @@ $(document).ready(function() {
     $("div#window-control-buttons button#resume-tab-switch-loops").on("click", resumeTabSwitchLoopsHandler);
     $("div#window-control-buttons button#load-url").on("click", loadUrlIntoWindows);
     $("div#window-control-buttons button#reload-windows").on("click", reloadWindows);
+    $("div#window-configurations table.tab-list tr.defined-page").on("click", switchToPage);
 
     socket.on("tabSwitchLoopStatusUpdate", handleTabSwitchLoopStatusUpdate);
 
@@ -90,6 +91,28 @@ function reloadWindows()
 }
 
 /**
+ * Switches to a specific page of a window.
+ *
+ * @param {Event} _event The clicked table row
+ */
+function switchToPage(_event)
+{
+    /*
+     * The event listener is on each table row but the table row cannot be clicked without clicking a table field.
+     * Therefore the event target is always a table field of the target table row
+     */
+    let clickedTabTableRow = $(_event.target).parent();
+
+    // Closest div container is the div container for the whole window configuration which has a data attribute with the window id
+    let tableRowParentWindow = $(clickedTabTableRow).closest("div");
+
+    let windowId = $(tableRowParentWindow).data("window");
+    let tabId = $(clickedTabTableRow).data("page");
+
+    socket.emit("switchToPage", { windowId: windowId, tabId: tabId });
+}
+
+/**
  * Handles "tabSwitchLoopStatusUpdate" events.
  *
  * @param {object} _statusUpdate The status update (contains the update type and the list of affected windows)
@@ -98,9 +121,9 @@ function handleTabSwitchLoopStatusUpdate(_statusUpdate)
 {
     handleTabSwitch(_statusUpdate);
 
-    let startCountdown;
-    if (_statusUpdate["type"] === "show") startCountdown = true;
-    else
+    let startCountdown = _statusUpdate["tabSwitchLoopIsActive"];
+
+    if (_statusUpdate["type"] === "halt" || _statusUpdate["type"] === "continue")
     { // halt or continue
 
         // Update the time progress bar

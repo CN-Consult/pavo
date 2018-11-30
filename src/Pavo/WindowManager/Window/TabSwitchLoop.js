@@ -110,14 +110,14 @@ class TabSwitchLoop extends EventEmitter
             if (this.tabDisplayer.currentTabType === "reload") this.tabDisplayer.getTabReloadLoop().halt();
 
             this.isActive = false;
-            this.emit("halt", { tab: this.tabDisplayer.getCurrentTab(), remainingDisplayTime: this.remainingDisplayTime });
+            this.emit("halt", { tab: this.tabDisplayer.getCurrentTab(), remainingDisplayTime: this.getRemainingDisplayTime(), isActive: this.isActive });
         }
     }
 
     /**
      * Continues the tab switch loop if it is currently not running.
      *
-     * @returns {Promise}
+     * @return {Promise} The promise that continues the tab switch loop
      */
     continue()
     {
@@ -127,7 +127,7 @@ class TabSwitchLoop extends EventEmitter
             if (self.isActive) _resolve("No continue necessary, tab switch loop already running");
             else
             {
-                self.emit("continue", { tab: self.tabDisplayer.getCurrentTab(), remainingDisplayTime: self.remainingDisplayTime });
+                self.emit("continue", { tab: self.tabDisplayer.getCurrentTab(), remainingDisplayTime: self.getRemainingDisplayTime(), isActive: self.isActive });
                 self.isActive = true;
                 if (self.tabDisplayer.getIsCustomPageDisplayed()) self.tabDisplayer.restoreOriginalPage();
 
@@ -160,20 +160,12 @@ class TabSwitchLoop extends EventEmitter
             self.nextTabTimeoutStart = Date.now();
             self.nextTabTimeout = setInterval(function(){
 
-                clearInterval(self.nextTabTimeout);
                 let nextTab = self.tabDisplayer.getTabList().getNextTab();
-                self.tabDisplayer.showTab(nextTab).then(function(){
-
-                    let currentTab = self.tabDisplayer.getCurrentTab();
-
-                    let millisecondsPassed = Date.now() - self.nextTabTimeoutStart - self.remainingDisplayTime;
-                    self.remainingDisplayTime = currentTab.getDisplayTime() - millisecondsPassed;
+                self.showTab(nextTab).then(function(){
 
                     // Call this method again after <displayTime>
                     if (self.isActive)
                     {
-                        self.emit("show", { tab: currentTab, remainingDisplayTime: self.remainingDisplayTime });
-
                         self.nextTabTimeoutStart = Date.now();
                         self.nextTabTimeout = setInterval(function(){
                             self.remainingDisplayTime = 0;
@@ -181,9 +173,55 @@ class TabSwitchLoop extends EventEmitter
                         }, self.remainingDisplayTime);
                     }
                 });
-            }, self.remainingDisplayTime);
+            }, self.getRemainingDisplayTime());
 
             _resolve("Next tab shown.");
+        });
+    }
+
+    /**
+     * Shows a specified tab.
+     *
+     * @param {Tab} _tab The tab to show
+     */
+    showTab(_tab)
+    {
+        clearInterval(this.nextTabTimeout);
+
+        let self = this;
+        return new Promise(function(_resolve){
+            self.tabDisplayer.showTab(_tab).then(function(){
+                self.remainingDisplayTime = _tab.getDisplayTime();
+                self.emit("show", { tab: self.tabDisplayer.getCurrentTab(), remainingDisplayTime: self.remainingDisplayTime, isActive: self.isActive });
+                _resolve("Tab shown");
+            });
+        });
+    }
+
+    /**
+     * Switches the tab switch loop to a specific page.
+     *
+     * @param {int} _tabId The tab id
+     *
+     * @return {Promise} The promise that switches the tab switch loop to a specific page
+     */
+    switchToPage(_tabId)
+    {
+        let tabList = this.tabDisplayer.getTabList();
+        let tab = tabList.getTab(_tabId);
+
+        let self = this;
+        return new Promise(function(_resolve, _reject){
+
+            if (tab)
+            {
+                self.showTab(tab).then(function(){
+                    tabList.setCurrentTabIndex(_tabId);
+                    _resolve("Switched to page");
+                });
+            }
+            else _reject("Tab is not set");
+
         });
     }
 }

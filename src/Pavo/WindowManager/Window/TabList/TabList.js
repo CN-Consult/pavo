@@ -20,6 +20,19 @@ class TabList
     }
 
 
+    // Getters and Setters
+
+    /**
+     * Sets the current tab index.
+     *
+     * @param {int} _currentTabIndex The current tab index
+     */
+    setCurrentTabIndex(_currentTabIndex)
+    {
+        this.currentTabIndex = _currentTabIndex;
+    }
+
+
     // Public Methods
 
     /**
@@ -29,6 +42,18 @@ class TabList
     {
         this.tabs.push(_tab);
         this.currentTabIndex = this.tabs.length - 1;
+    }
+
+    /**
+     * Returns a tab by id.
+     *
+     * @param {int} _tabId The tab id
+     *
+     * @return {Tab} The tab
+     */
+    getTab(_tabId)
+    {
+        return this.tabs[_tabId];
     }
 
     /**

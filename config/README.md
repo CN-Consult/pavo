@@ -48,6 +48,7 @@ Page
 | Name               | Type     | Description
 |--------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | url                | string   | Url of the website that shall be displayed in this page                                                                                                                 |
+| name               | string   | A name for the page that will be displayed in the overview of the web interface (Default: url)                                                                          |
 | displayTime        | int      | The time for which the page is displayed before the next page is shown                                                                                                  |
 | reloadTime         | int      | The time interval in which the page is reloaded (set to 0 to disable)                                                                                                   |
 | reloadAfterAppInit | Boolean  | If set to true the page will be reloaded after all pages are initialized (can be used to auto login in one page and to reload all other pages that need the same login) |

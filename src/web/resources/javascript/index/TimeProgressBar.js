@@ -67,7 +67,8 @@ class TimeProgressBar
         let self = this;
         let firstCyclePromise = new Promise(function(_resolve){
             setTimeout(function() {
-                self.progress(progressStatusInfo);
+
+                if (self.numberOfRemainingMilliseconds % 1000 > 0) self.progress(progressStatusInfo);
                 _resolve("First cycle complete");
             }, self.numberOfRemainingMilliseconds % 1000);
         });

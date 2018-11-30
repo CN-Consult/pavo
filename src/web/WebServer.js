@@ -19,6 +19,7 @@ const HaltTabSwitchLoopsEventProcessor = require(__dirname + "/EventProcessor/We
 const ResumeTabSwitchLoopsEventProcessor = require(__dirname + "/EventProcessor//WebClient/ResumeTabSwitchLoopsEventProcessor");
 const LoadURLEventProcessor = require(__dirname + "/EventProcessor/WebClient/LoadURLEventProcessor");
 const ReloadWindowsEventProcessor = require(__dirname + "/EventProcessor/WebClient/ReloadWindowsEventProcessor");
+const SwitchToPageEventProcessor = require(__dirname + "/EventProcessor/WebClient/SwitchToPageEventProcessor");
 
 const TabSwitchEventProcessor = require(__dirname + "/EventProcessor/Pavo/TabSwitchEventProcessor");
 
@@ -100,7 +101,8 @@ class WebServer extends EventEmitter
             "haltTabSwitchLoops": new HaltTabSwitchLoopsEventProcessor(this.socket, _pavoApi),
             "resumeTabSwitchLoops": new ResumeTabSwitchLoopsEventProcessor(this.socket, _pavoApi),
             "loadUrl": new LoadURLEventProcessor(this.socket, _pavoApi),
-            "reloadWindows": new ReloadWindowsEventProcessor(this.socket, _pavoApi)
+            "reloadWindows": new ReloadWindowsEventProcessor(this.socket, _pavoApi),
+            "switchToPage": new SwitchToPageEventProcessor(this.socket, _pavoApi)
         };
 
         this.pavoEventProcessors = {

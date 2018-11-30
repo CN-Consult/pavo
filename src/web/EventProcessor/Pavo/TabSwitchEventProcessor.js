@@ -43,7 +43,8 @@ class TabSwitchEventProcessor extends BaseEventProcessor
             type: _eventName,
             window: _data["tab"].getParentWindow().getId(),
             tab: _data["tab"].getId(),
-            remainingDisplayMilliseconds: _data["remainingDisplayTime"]
+            remainingDisplayMilliseconds: _data["remainingDisplayTime"],
+            tabSwitchLoopIsActive: _data["isActive"]
         };
 
         this.socket.emit("tabSwitchLoopStatusUpdate", statusUpdate);
