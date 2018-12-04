@@ -5,6 +5,10 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const { app } = require("electron");
+const fs = require("fs");
+const mv = require("mv");
+
 const pavoApiLogger = require("log4js").getLogger("pavoApi");
 
 /**
@@ -36,6 +40,51 @@ class PavoApi
     }
 
     /**
+     * Returns the currently loaded pavo configuration.
+     *
+     * @return {string|Object} The error message if the pavo app is not initialized yet or the currently loaded pavo configuration
+     */
+    getLoadedConfiguration()
+    {
+        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+
+        return this.parentPavo.getLoadedConfiguration();
+    }
+
+    /**
+     * Sets the pavo configuration inside the configuration file.
+     * This new configuration will not be applied until a restart of the pavo app.
+     *
+     * @param {object} _configuration The new configuration
+     */
+    setConfiguration(_configuration)
+    {
+        // TODO: Check that configuration is different from current one
+        let configBaseDirectory = app.getPath("home") + "/config";
+        let configBackupDirectory = configBaseDirectory + "/config-backups";
+
+        // Create the backup directory for config files if necessary
+        if (! fs.existsSync(configBackupDirectory)) fs.mkdirSync(configBackupDirectory);
+
+        let configFilePath = configBaseDirectory + "/config.json";
+        let backupFilePath = configBackupDirectory + "/" + Date.now() + ".json";
+
+        // Backup the previous file
+        mv(configFilePath, backupFilePath, function(_error){
+
+            if (_error)
+            {
+                pavoApiLogger.warn(_error);
+                pavoApiLogger.warn("Could not create backup of previous config file, aborting configuration update.");
+            }
+            else
+            { // Write the new configuration to the config file
+                fs.writeFileSync(configFilePath, JSON.stringify(_configuration));
+            }
+        });
+    }
+
+    /**
      * Returns the status for each window of the pavo app.
      * This includes the configuration and whether the tab switch loop is active
      *
@@ -47,7 +96,7 @@ class PavoApi
 
         let windowsStatus = [];
 
-        let windowConfigurations = this.parentPavo.getLoadedConfiguration().windows;
+        let windowConfigurations = this.getLoadedConfiguration().windows;
         let windows = this.getWindows();
 
         if (Array.isArray(windowConfigurations))

@@ -8,6 +8,7 @@
 let pageFetchedTimeStamp = Date.now();
 
 let windowSelectionSideBar;
+let jsonEditorDialog;
 let timeProgressBars = [];
 let socket = io.connect("http://" + location.host);
 
@@ -16,11 +17,15 @@ $(document).ready(function() {
     windowSelectionSideBar = new WindowSelectionSideBar();
     windowSelectionSideBar.initialize();
 
+    jsonEditorDialog = new JsonEditorDialog(socket);
+    jsonEditorDialog.init($("div#dialog-json-editor"), $("div#dialog-confirm-configuration-save"));
+
     $("div#window-control-buttons button#freeze-current-page").on("click", freezeCurrentPageButtonClickHandler);
     $("div#window-control-buttons button#resume-tab-switch-loops").on("click", resumeTabSwitchLoopsHandler);
     $("div#window-control-buttons button#load-url").on("click", loadUrlIntoWindows);
     $("div#window-control-buttons button#reload-windows").on("click", reloadWindows);
     $("div#window-configurations table.tab-list tr.defined-page").on("click", switchToPage);
+    $("div#configuration-buttons button#edit-pavo-config").on("click", showJsonEditor);
 
     socket.on("tabSwitchLoopStatusUpdate", handleTabSwitchLoopStatusUpdate);
 
@@ -215,4 +220,15 @@ function showRemainingTime(_windowId, _tabId, _numberOfRemainingMilliseconds, _s
 
     if (_startCountdown) timeProgressBars[_windowId].start();
     else timeProgressBars[_windowId].initializeCountDownElement();
+}
+
+/**
+ * Shows the json editor dialog.
+ */
+function showJsonEditor()
+{
+    socket.once("loadedConfigurationStatus", function(_loadedConfiguration){
+        jsonEditorDialog.show(_loadedConfiguration);
+    });
+    socket.emit("getLoadedConfiguration");
 }

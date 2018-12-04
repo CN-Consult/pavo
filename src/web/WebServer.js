@@ -20,6 +20,8 @@ const ResumeTabSwitchLoopsEventProcessor = require(__dirname + "/EventProcessor/
 const LoadURLEventProcessor = require(__dirname + "/EventProcessor/WebClient/LoadURLEventProcessor");
 const ReloadWindowsEventProcessor = require(__dirname + "/EventProcessor/WebClient/ReloadWindowsEventProcessor");
 const SwitchToPageEventProcessor = require(__dirname + "/EventProcessor/WebClient/SwitchToPageEventProcessor");
+const GetLoadedConfigurationEventProcessor = require(__dirname + "/EventProcessor/WebClient/GetLoadedConfigurationEventProcessor");
+const EditConfigurationEventProcessor = require(__dirname + "/EventProcessor/WebClient/EditConfigurationEventProcessor");
 
 const TabSwitchEventProcessor = require(__dirname + "/EventProcessor/Pavo/TabSwitchEventProcessor");
 
@@ -86,7 +88,7 @@ class WebServer extends EventEmitter
     initializeControllers(_pavoApi)
     {
         this.controllers = {
-            "index": new IndexController(_pavoApi),
+            "index": new IndexController(_pavoApi)
         };
     }
 
@@ -102,7 +104,9 @@ class WebServer extends EventEmitter
             "resumeTabSwitchLoops": new ResumeTabSwitchLoopsEventProcessor(this.socket, _pavoApi),
             "loadUrl": new LoadURLEventProcessor(this.socket, _pavoApi),
             "reloadWindows": new ReloadWindowsEventProcessor(this.socket, _pavoApi),
-            "switchToPage": new SwitchToPageEventProcessor(this.socket, _pavoApi)
+            "switchToPage": new SwitchToPageEventProcessor(this.socket, _pavoApi),
+            "getLoadedConfiguration": new GetLoadedConfigurationEventProcessor(this.socket, _pavoApi),
+            "editConfiguration": new EditConfigurationEventProcessor(this.socket, _pavoApi)
         };
 
         this.pavoEventProcessors = {
@@ -130,6 +134,7 @@ class WebServer extends EventEmitter
         this.express.use("/jquery-ui", express.static(__dirname + "/../../node_modules/jquery-ui-dist"));
         this.express.use("/font-awesome", express.static(__dirname + "/../../node_modules/@fortawesome/fontawesome-free"));
         this.express.use("/socket.io", express.static(__dirname + "/../../node_modules/socket.io-client/dist"));
+        this.express.use("/json-editor", express.static(__dirname + "/../../node_modules/json-editor/dist"));
     }
 
     /**
