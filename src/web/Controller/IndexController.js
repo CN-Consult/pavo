@@ -5,7 +5,6 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const nunjucks = require("nunjucks");
 const os = require("os");
 const BaseController = require(__dirname + "/BaseController");
 
@@ -27,13 +26,10 @@ class IndexController extends BaseController
         let windowsStatus = this.pavoApi.getWindowsStatus();
         if (! Array.isArray(windowsStatus)) windowsStatus = [];
 
-        _response.writeHead(200, {"Content-Type": "text/html"});
-        _response.end(
-            nunjucks.render("index.njk", {
-                dashboardName: os.hostname(),
-                windowsStatus: windowsStatus
-            })
-        );
+        _response.render("index.njk", {
+            dashboardName: os.hostname(),
+            windowsStatus: windowsStatus
+        });
     }
 }
 

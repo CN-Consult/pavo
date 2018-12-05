@@ -8,6 +8,7 @@
 const EventEmitter = require("events");
 const express = require("express");
 const http = require("http");
+const minifyHTML = require("express-minify-html");
 const nunjucks = require("nunjucks");
 const socket = require("socket.io");
 
@@ -49,6 +50,19 @@ class WebServer extends EventEmitter
             autoescape: true,
             express: this.express
         });
+
+        this.express.use(minifyHTML({
+            override:      true,
+            exception_url: false,
+            htmlMinifier: {
+                removeComments:            true,
+                collapseWhitespace:        true,
+                collapseBooleanAttributes: true,
+                removeAttributeQuotes:     true,
+                removeEmptyAttributes:     true,
+                minifyJS:                  true
+            }
+        }));
     }
 
 
