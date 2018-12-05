@@ -7,29 +7,27 @@
 
 let pageFetchedTimeStamp = Date.now();
 
-let windowSelectionSideBar;
 let jsonEditorDialog;
 let timeProgressBars = [];
 let socket = io.connect("http://" + location.host);
 
 $(document).ready(function() {
 
-    windowSelectionSideBar = new WindowSelectionSideBar();
-    windowSelectionSideBar.initialize();
-
     jsonEditorDialog = new JsonEditorDialog(socket);
     jsonEditorDialog.init($("div#dialog-json-editor"), $("div#dialog-confirm-configuration-save"));
 
-    $("div#window-control-buttons button#freeze-current-page").on("click", freezeCurrentPageButtonClickHandler);
-    $("div#window-control-buttons button#resume-tab-switch-loops").on("click", resumeTabSwitchLoopsHandler);
-    $("div#window-control-buttons button#load-url").on("click", loadUrlIntoWindows);
-    $("div#window-control-buttons button#reload-windows").on("click", reloadWindows);
-    $("div#window-configurations table.tab-list tr.defined-page").on("click", switchToPage);
-    $("div#configuration-buttons button#edit-pavo-config").on("click", showJsonEditor);
+    $("button#toggle-tab-switch-loop").on("click", toggleTabSwitchLoop);
+    $("form#load-url-form").on("submit", loadUrlIntoWindow);
+    $("button#reload-window").on("click", reloadWindows);
+    $("div.window-configuration table.tab-list tr.defined-page").on("click", switchToPage);
+    $("div#pavo-overview section#pavo-configuration-edit button#edit-pavo-config").on("click", showJsonEditor);
 
     socket.on("tabSwitchLoopStatusUpdate", handleTabSwitchLoopStatusUpdate);
 
     initializeTimeProgressBars();
+
+    // Initialize tool tips
+    $("[data-toggle=\"tooltip\"]").tooltip();
 });
 
 $(window).bind("beforeunload", function(){
@@ -42,57 +40,58 @@ $(window).bind("beforeunload", function(){
  */
 function initializeTimeProgressBars()
 {
-    let tabLists = $("div.window-configuration table.tab-list");
+    let windowConfigurationDivs = $("div.window-configuration");
 
-    tabLists.each(function(_tabListIndex){
+    windowConfigurationDivs.each(function(_windowConfigurationDivIndex){
 
-        let tabList = $(tabLists[_tabListIndex]);
+        let windowConfiguration = $(windowConfigurationDivs[_windowConfigurationDivIndex]);
+        let tabList = $(windowConfiguration).find("table.tab-list");
 
         let currentTab = tabList.data("current-tab");
         let remainingDisplayTime = tabList.data("remaining-display-time") - (Date.now() - pageFetchedTimeStamp);
-        let isTabSwitchLoopActive = tabList.data("tab-switch-loop-active");
+        let isTabSwitchLoopActive = windowConfiguration.data("tab-switch-loop-active");
 
-        timeProgressBars[_tabListIndex] = new TimeProgressBar();
-        timeProgressBars[_tabListIndex].initialize(tabList.find("td.remaining-time"), remainingDisplayTime);
+        timeProgressBars[_windowConfigurationDivIndex] = new TimeProgressBar();
+        timeProgressBars[_windowConfigurationDivIndex].initialize(tabList.find("td.remaining-time"), remainingDisplayTime);
 
-        showRemainingTime(_tabListIndex, currentTab, remainingDisplayTime, isTabSwitchLoopActive);
+        showRemainingTime(_windowConfigurationDivIndex, currentTab, remainingDisplayTime, isTabSwitchLoopActive);
     });
 }
 
 // Tab switch loop update and control
 
 /**
- * Halts the tab switch loops of the currently selected windows.
+ * Halts or resumes the tab switch loops of the event targets window.
  */
-function freezeCurrentPageButtonClickHandler()
+function toggleTabSwitchLoop(_event)
 {
-    socket.emit("haltTabSwitchLoops", { windowIds: windowSelectionSideBar.getSelectedWindows() });
-}
-
-/**
- * Resumes the tab switch loop of the currently selected windows.
- */
-function resumeTabSwitchLoopsHandler()
-{
-    socket.emit("resumeTabSwitchLoops", { windowIds: windowSelectionSideBar.getSelectedWindows() });
+    if ($(_event.target).closest("div.window-configuration").data("tab-switch-loop-active") === true)
+    {
+        socket.emit("haltTabSwitchLoops", { windowIds: [ getWindowIdFromElement(_event.target) ] });
+    }
+    else socket.emit("resumeTabSwitchLoops", { windowIds: [ getWindowIdFromElement(_event.target) ] });
 }
 
 /**
  * Loads an url into the currently selected windows.
  */
-function loadUrlIntoWindows()
+function loadUrlIntoWindow(_event)
 {
-    let url = $("div#window-control-buttons input#load-url-url").val();
+    // Prevent the page reload on form submission
+    _event.preventDefault();
 
-    socket.emit("loadURL", { windowIds: windowSelectionSideBar.getSelectedWindows(), url: url });
+    // Fetch the url from the form
+    let url = $(_event.target).find("input#url").val();
+
+    socket.emit("loadURL", { windowIds: [ getWindowIdFromElement(_event.target) ], url: url });
 }
 
 /**
  * Reloads the currently selected windows.
  */
-function reloadWindows()
+function reloadWindows(_event)
 {
-    socket.emit("reloadWindows", { windowIds: windowSelectionSideBar.getSelectedWindows() });
+    socket.emit("reloadWindows", { windowIds: [ getWindowIdFromElement(_event.target) ] });
 }
 
 /**
@@ -106,7 +105,7 @@ function switchToPage(_event)
      * The event listener is on each table row but the table row cannot be clicked without clicking a table field.
      * Therefore the event target is always a table field of the target table row
      */
-    let clickedTabTableRow = $(_event.target).parent();
+    let clickedTabTableRow = $(_event.target).closest("tr");
 
     // Closest div container is the div container for the whole window configuration which has a data attribute with the window id
     let tableRowParentWindow = $(clickedTabTableRow).closest("div");
@@ -131,20 +130,29 @@ function handleTabSwitchLoopStatusUpdate(_statusUpdate)
     if (_statusUpdate["type"] === "halt" || _statusUpdate["type"] === "continue")
     { // halt or continue
 
+        let resumeTabSwitchLoop = _statusUpdate["type"] === "continue";
+        let windowConfigurationDiv = $("div#window-configuration-" + _statusUpdate["window"]);
+
         // Update the time progress bar
         let timeProgressBar = timeProgressBars[_statusUpdate["window"]];
-        if (timeProgressBar)
-        {
-            if (_statusUpdate["type"] === "halt") startCountdown = false;
-            else startCountdown = true;
-        }
+        if (timeProgressBar) startCountdown = resumeTabSwitchLoop;
+
+        // Update tab switch loop active data
+        $(windowConfigurationDiv).data("tab-switch-loop-active", resumeTabSwitchLoop);
 
         // Update the tab switch loop status circle
         let circleClassName;
-        if (_statusUpdate["type"] === "halt") circleClassName = "redCircle";
-        else circleClassName = "greenCircle";
+        if (resumeTabSwitchLoop) circleClassName = "greenCircle";
+        else circleClassName = "redCircle";
 
-        setTabSwitchLoopCircleClass(_statusUpdate["window"], circleClassName);
+        // Update button functionality
+        let toggleTabSwitchLoopButton = $(windowConfigurationDiv).find(" table.components button#toggle-tab-switch-loop");
+
+        toggleTabSwitchLoopButton.empty();
+        if (resumeTabSwitchLoop) toggleTabSwitchLoopButton.append($("<i class=\"fas fa-pause\"></i>"));
+        else toggleTabSwitchLoopButton.append($("<i class=\"fas fa-play\"></i>"));
+
+        setTabSwitchLoopCircleClass(windowConfigurationDiv, circleClassName);
     }
 
     showRemainingTime(_statusUpdate["window"], _statusUpdate["tab"], _statusUpdate["remainingDisplayMilliseconds"], startCountdown);
@@ -153,12 +161,12 @@ function handleTabSwitchLoopStatusUpdate(_statusUpdate)
 /**
  * Sets the circle class name for the tab switch loop state circle.
  *
- * @param {int} _windowId The id of the window to which the tab switch loop belongs
+ * @param {jQuery} _windowConfigurationDiv The window configuration div container in which the tab switch loop circle will be changed
  * @param {string} _circleClassName The new circle class name
  */
-function setTabSwitchLoopCircleClass(_windowId, _circleClassName)
+function setTabSwitchLoopCircleClass(_windowConfigurationDiv, _circleClassName)
 {
-    let tabSwitchLoopStateCircle = $("div#window-configuration-" + _windowId + " p#tabSwitchLoopState");
+    let tabSwitchLoopStateCircle =$(_windowConfigurationDiv).find(" p#tabSwitchLoopState");
 
     if (! tabSwitchLoopStateCircle.hasClass(_circleClassName))
     {
@@ -231,4 +239,16 @@ function showJsonEditor()
         jsonEditorDialog.show(_loadedConfiguration);
     });
     socket.emit("getLoadedConfiguration");
+}
+
+/**
+ * Returns the window id from a node inside a window configuration div container.
+ *
+ * @param {jQuery} _node The node
+ *
+ * @return {int} The window id or undefined if the node is not inside a window-configuration div container
+ */
+function getWindowIdFromElement(_node)
+{
+    return $(_node).closest("div.window-configuration").data("window");
 }

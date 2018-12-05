@@ -83,6 +83,7 @@ class JsonEditorDialog
                 }
             }
         });
+        $(this.jsonEditorDialogElement).css("visibility", "visible");
 
 
         let saveEditedJson = this.saveEditedJson.bind(this);
@@ -104,6 +105,7 @@ class JsonEditorDialog
                 }
             }
         });
+        $(this.confirmDialogElement).css("visibility", "visible");
     }
 
     /**

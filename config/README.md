@@ -57,7 +57,7 @@ Page
 | autoLogin          | Object   | Auto login configuration                                                                                                                                                |
 
 
-Note: array values of arrays with numeric values are appended to the page defaults instead of replacing the page default settings (cssFiles and jsFiles)
+Note: array values of arrays with numeric indexes are appended to the page defaults instead of replacing the page default settings (cssFiles and jsFiles)
 
 
 AutoLogin

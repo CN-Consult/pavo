@@ -11,44 +11,19 @@
         <meta charset="UTF-8">
         <title>Dashboard Konfiguration - {{ dashboardName }}</title>
 
-        {# jQuery #}
-        <script src="jquery/jquery.min.js"></script>
-
-        {# Font awesome icons (@see: https://fontawesome.com/ #}
-        <link rel="stylesheet" href="font-awesome/css/all.min.css">
-
-        {# Bootstrap #}
-        <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
-        <script src="bootstrap/js/bootstrap.min.js"></script>
-
-        {# jQuery UI #}
-        <link rel="stylesheet" href="jquery-ui/jquery-ui.min.css">
-        <script src="jquery-ui/jquery-ui.min.js"></script>
-
-        <script src="socket.io/socket.io.js"></script>
-
-        {# JSON Editor #}
-        <script src="json-editor/jsoneditor.min.js"></script>
-
-        {# TODO: Each page must define its own head content (at least own javascript and css files) #}
-        {# Custom scripts#}
-        <script src="javascript/index/TimeProgressBar.js"></script>
-        <script src="javascript/index/WindowSelectionSideBar.js"></script>
-        <script src="javascript/index/JsonEditorDialog.js"></script>
-        <script src="javascript/index.js"></script>
-
-        {# Custom styles #}
-        <link rel="stylesheet" href="css/index.css">
+        {% block externalLibraries %}{% endblock %}
+        {% block customLibraries %}{% endblock %}
 
     </head>
     <body>
-
-        <div id="title-bar">
+        <header>
             <h1>Dashboard: {{ dashboardName }}</h1>
-        </div>
+        </header>
 
-        <main>
-            {% block content %}{% endblock %}
-        </main>
+        {% block content %}{% endblock %}
+
+        <footer>
+            <p>Copyright &#169 2018 CN-Consult GmbH</p>
+        </footer>
     </body>
 </html>

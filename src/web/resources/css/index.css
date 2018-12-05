@@ -5,8 +5,8 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-/* Reset the styles */
-html, body, main, div, h1, h2 {
+/****************** Reset the styles ******************/
+html, body, header, main, div, h1, h2, h3, h4 input, label, table, tr, td {
     margin: 0;
     padding: 0;
     text-decoration: none;
@@ -15,109 +15,120 @@ html, body, main, div, h1, h2 {
 }
 
 
-/* General styles */
-h1, h2 {
-    text-align: center;
-}
-
+/****************** General styles ******************/
 body
 {
-    background-color: #E1F0FC;
+    background-color: #DCE4EF;
     color: #424764;
 }
-main {
-    width: 100%;
+h1, h2, h3 {
+    text-align: center;
+}
+h2, h3 {
+    margin-bottom: 5px;
 }
 
+
+/***************** Page element styles *****************/
 
 /* Title bar */
-div#title-bar {
+header, footer {
     width: 100%;
     height: 50px;
-    color: #EEE;
-    background-color: #424764;
+    position: fixed;
+    color: #FFF;
+    background-color: #004687;
+    text-align: center;
 }
-div#title-bar h1 {
+header h1, h2 {
     font-weight: bold;
 
     /* Setting the line height to the same value as the parent div container in order to center the text vertically */
     line-height: 50px;
 }
+main {
+    /* Setting the padding to the same value as the headers height to display the main content below the header */
+    padding-top: 50px;
 
-/* Window selection side bar */
-div#window-selection {
+    /* Setting the padding to the same value as the footers height to display the main content above the footer */
+    padding-bottom: 36px;
+
+    /* TODO: min width */
+}
+footer {
     position: fixed;
-    width: 300px;
-    height: 100%;
-    padding: 0;
-    background-color: #FAFBFC;
-    color: #424764;
-    border-right: 1px solid #B7BEE5;
+    height: 36px;
+    line-height: 36px;
+    bottom: 0;
 }
-div#window-selection h2 {
-    margin-bottom: 5px;
+footer p {
+    font-size: 13px;
 }
-div.window-select-buttons {
-    width: 100%;
-}
-div.window-select-buttons label {
-    /* Should download a customized jquery ui instead of overriding the styles */
-    text-align: center !important;
-}
-input.window-select-button {
-    width: 100%;
+
+
+/* Generic classes */
+div.whiteRoundedRectangle {
+    border-radius: 5px;
+    background-color: #FFF;
 }
 
 
 /* Window overview */
 div#window-overview {
-
-    /* Setting the margin left to the same value as the width of the window selection side bar */
-    margin-left: 300px;
     padding: 20px;
 }
-div#window-configurations {
+section#windows-status {
     text-align: center;
 }
-div#window-configurations h2 {
-    margin-bottom: 5px;
-}
-div.window-configuration {
-    border-radius: 5px;
-    background-color: #FFF;
-    margin-bottom: 10px;
+
+/* Window status */
+section#windows-status div.window-configuration {
+    width: 500px;
     padding: 10px;
-    width: 400px;
     display: inline-block;
 }
-
-/* Currently shown tab */
-table.tab-list tr.active {
-    background-color: #FFAA00;
+section#windows-status div.window-configuration:not(:last-child) {
+    margin-right: 10px;
 }
 
+/* Tab List */
+table.tab-list tr.defined-page td.tab-name {
+    color: #00E;
+}
 table.tab-list tr.defined-page:hover {
     cursor: pointer;
 }
-
-table.tab-list td.remaining-time {
-    background: white;
-    color: black;
-    height: 100%;
-
-    /*
-     * Using padding as margin because:
-     *  a) The remaining time must be in the table in order for it to be vertically centered in case of multi line cells
-     *  b) The margin attribute has no effect for table cells
-     */
-    padding-left: 20px;
+table.tab-list td {
+    padding: 1px 0;
+}
+table.tab-list td:not(:last-child) {
+    /* Using padding as margin because the margin attribute has no effect for table cells */
+    padding-right: 20px;
+}
+table.tab-list tr.active td.tab-type p {
+    background-color: #FA0;
+}
+table.tab-list td.tab-type p {
+    border: 1px solid black;
+    border-radius: 100%;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    margin: auto 0;
 }
 
-/* Tab switch loop active circle */
-table.components td:first-child {
-    padding-right: 5px;
+p.caption {
+    text-align: left;
+    margin-top: 5px;
+    font-size: 12px;
 }
 
+/* Components */
+table.components td:not(:last-child) {
+    padding-right: 10px;
+}
+
+/* Circle for component status */
 p.circle {
     border-radius: 100%;
     height: 15px;
@@ -132,33 +143,30 @@ p.circle.redCircle {
     background: #D74141;
 }
 
+/* Window functions */
+form#load-url-form label[for="url"] {
+    margin-right: 5px;
+}
 
-/* Window controls */
-div#window-controls {
-    margin-top: 20px;
+
+/* Administration Buttons */
+div#pavo-configuration-edit {
+    width: 100%;
 }
-div#window-controls h2 {
-    margin-bottom: 5px;
-}
-div#window-control-button-container {
-    text-align: center;
-    background-color: #FFF;
-    width: 600px;
-    border-radius: 5px;
-    display: block;
+div#configuration-buttons {
+    width: 500px;
+    padding: 5px;
     margin: 0 auto;
-}
-div#window-control-buttons {
-    padding: 20px;
     text-align: center;
 }
-p.caption {
-    margin: 10px 0 0 3px;
+div#pavo-overview {
+    margin-bottom: 10px;
+}
+
+/* Configuration editor */
+div#json-editor h1, div#json-editor h2, div#json-editor h3 {
     text-align: left;
 }
-
-
-/** Configuration editor **/
 div#json-editor h3 {
     font-size: 15px;
     font-weight: bold;
@@ -170,9 +178,13 @@ div#json-editor label {
     background: #EEE;
     color: #555;
     padding: 0 3px;
+    margin: 5px 0;
 }
-
-
 .ui-dialog .ui-dialog-title {
     text-align: center;
+}
+
+div#dialog-json-editor, div#dialog-confirm-configuration-save {
+    /* Hide the content of the dialogs until the dialog is initialized */
+    visibility: hidden;
 }

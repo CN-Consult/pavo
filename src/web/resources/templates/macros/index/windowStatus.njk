@@ -1,0 +1,122 @@
+{#
+ # @file
+ # @version 0.1
+ # @copyright 2018 CN-Consult GmbH
+ # @author Yannick Lapp <yannick.lapp@cn-consult.eu>
+ #}
+
+{#
+ # Creates the window configuration divs with brief information (position and tab urls).
+ #
+ # @param int _windowIndex The window index in the list of windows
+ # @param Object _window The window configuration
+ #}
+{% macro generateWindowStatusDiv(_windowIndex, _windowStatus) %}
+    <div class="window-configuration whiteRoundedRectangle" id="window-configuration-{{ _windowIndex }}"
+         data-window="{{ _windowIndex }}"
+         data-tab-switch-loop-active="{{ _windowStatus.isTabSwitchLoopActive }}">
+
+        <h3>Fenster {{ _windowIndex + 1 }}</h3>
+
+        <h4>Position</h4>
+        <table>
+            <tr>
+                <td>Start Position</td>
+                <td>({{ _windowStatus.configuration.position.x }}|{{ _windowStatus.configuration.position.y }})</td>
+            </tr>
+            <tr>
+                <td>Breite</td>
+                <td>{{ _windowStatus.configuration.position.width }}</td>
+            </tr>
+            <tr>
+                <td>Höhe</td>
+                <td>{{ _windowStatus.configuration.position.height }}</td>
+            </tr>
+        </table>
+
+        <hr>
+
+        <h4>Tabs</h4>
+        <table class="tab-list"
+               data-current-tab="{{ _windowStatus.currentTab }}"
+               data-remaining-display-time="{{ _windowStatus.remainingDisplayTime }}">
+            {% set pageDefaults = _windowStatus.configuration.pageDefaults %}
+            {% for pageIndex in range(0, _windowStatus.configuration.pages.length) %}
+                {% set page = _windowStatus.configuration.pages[pageIndex] %}
+                <tr class="defined-page {% if (_windowStatus.currentTab === pageIndex) %}active{% endif %}"
+                        id="tab-{{ pageIndex }}"
+                        data-page="{{ pageIndex }}">
+
+                    {# Page type (S = Static, R = Reload) #}
+                    <td class="tab-type">
+                      {# If page or pageDefaults reloadTime is set and greater than 0 #}
+                        {% if (page.reloadTime is defined and page.reloadTime != 0) or
+                              (page.reloadTime is not defined and pageDefaults.reloadTime is defined and pageDefaults.reloadTime != 0) %}
+                            <p>R</p>
+
+                      {# Default reloadTime is 0 #}
+                        {% else %}
+                            <p>S</p>
+                        {% endif %}
+                    </td>
+                    <td class="tab-name" data-toggle="tooltip" title="Umschalten auf {{ page.url }}"
+                    >
+                        {% if page.name %}{{ page.name }}{% else %}{{ page.url }}{% endif %}
+                    </td>
+                    <td class="remaining-time"></td>
+                </tr>
+            {% endfor %}
+
+            <tr id="custom-page" class="custom-page" hidden>
+
+                {# Page type (C = Custom) #}
+                <td class="tab-type">
+                    <p>C</p>
+                </td>
+                <td colspan="2"></td>
+            </tr>
+        </table>
+
+        <p class="caption">S = Static, R = Reload, C = Custom</p>
+        <hr>
+
+        <h4>Komponenten</h4>
+        <table class="components">
+            <tr>
+                <td>Tab wechseln</td>
+                <td>
+                    <p id="tabSwitchLoopState"
+                       class="circle {% if _windowStatus.isTabSwitchLoopActive %}greenCircle{% else %}redCircle{% endif %}">
+                    </p>
+                </td>
+                <td>
+                    <button class="btn btn-primary" id="toggle-tab-switch-loop">
+                        {%  if _windowStatus.isTabSwitchLoopActive %}
+                            <i class="fas fa-pause"></i>
+                        {% else %}
+                            <i class="fas fa-play"></i>
+                        {% endif %}
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+        <hr>
+
+        <h4>Funktionen</h4>
+
+        <form id="load-url-form">
+            <label for="url">URL</label>
+            <input type="text" id="url">
+
+            <button class="btn btn-primary" id="load-url" type="submit">
+                <i class="far fa-eye"></i> URL anzeigen
+            </button>
+        </form>
+
+        <button class="btn btn-primary" id="reload-window">
+            <i class="fas fa-redo"></i> Aktuelle Seite neu laden
+        </button>
+
+    </div>
+{% endmacro %}

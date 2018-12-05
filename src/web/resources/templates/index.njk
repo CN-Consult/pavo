@@ -5,95 +5,84 @@
  # @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  #}
 
-{% from "macros/index/windowInformation.njk" import generateWindowConfigurationDiv %}
+{% from "macros/index/windowStatus.njk" import generateWindowStatusDiv %}
 
 {% extends "base.njk" %}
 
+{% block externalLibraries %}
+    {# jQuery #}
+    <script src="jquery/jquery.min.js"></script>
+
+    {# Font awesome icons (@see: https://fontawesome.com/ #}
+    <link rel="stylesheet" href="font-awesome/css/all.min.css">
+
+    {# Bootstrap #}
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+
+    {# jQuery UI #}
+    <link rel="stylesheet" href="jquery-ui/jquery-ui.min.css">
+    <script src="jquery-ui/jquery-ui.min.js"></script>
+
+    {# socket.io #}
+    <script src="socket.io/socket.io.js"></script>
+
+    {# JSON Editor #}
+    <script src="json-editor/jsoneditor.min.js"></script>
+{% endblock %}
+
+{% block customLibraries %}
+    {# Custom scripts#}
+    <script src="javascript/index/TimeProgressBar.js"></script>
+    <script src="javascript/index/JsonEditorDialog.js"></script>
+    <script src="javascript/index.js"></script>
+
+    {# Custom styles #}
+    <link rel="stylesheet" href="css/index.css">
+{% endblock %}
+
 {% block content %}
 
-    {# Window selection sidebar #}
-    {# TODO: Rename to window selection sidebar #}
-    <div id="window-selection">
+    <main>
 
-        <div class="window-select-buttons">
+        {# Container for window controls and status #}
+        <div id="window-overview">
 
-            <h2>Fenster wählen</h2>
+            <section id="windows-status">
 
-            {# @todo: Rename "button" to checkbox to avoid confusion #}
+                <h2>Fenster Steuerung</h2>
 
-            {# Show a select button for each window #}
-            {% for windowIndex in range(0, windowsStatus.length) %}
-                <label for="window-checkbox-{{ windowIndex }}">Fenster {{ windowIndex + 1 }}</label>
-                <input class="window-select-button" type="checkbox" name="window-checkbox-{{ windowIndex }}" id="window-checkbox-{{ windowIndex }}" value={{ windowIndex }} hidden>
-            {% endfor %}
-
-            {# (Un-)Select all windows at once #}
-            <label for="all-windows-checkbox">Alle Fenster</label>
-            <input class="window-select-button" type="checkbox" name="all-windows-checkbox" id="all-windows-checkbox" value="all" hidden>
+                {# Create div containers to show the window status of all windows #}
+                {% for windowIndex in range(0, windowsStatus.length) %}
+                    {{ generateWindowStatusDiv(windowIndex, windowsStatus[windowIndex]) }}
+                {%  endfor %}
+            </section>
 
         </div>
 
-    </div>
+        <div id="pavo-overview">
 
+            <section id="pavo-configuration-edit">
 
-    {# Current window configuration and options #}
-    <div id="window-overview">
+                <h2>Administration</h2>
 
-        <div id="window-configurations">
-
-            <h2>Konfigurationen der Fenster (Kurzübersicht)</h2>
-
-            {# Create divs to show the window configuration of each selected window #}
-            {% for windowIndex in range(0, windowsStatus.length) %}
-                {{ generateWindowConfigurationDiv(windowIndex, windowsStatus[windowIndex]) }}
-            {%  endfor %}
-        </div>
-
-        <div id="window-controls">
-
-            <h2>Fenster-Steuerung</h2>
-
-            <div id="window-control-button-container">
-                <div id="window-control-buttons">
-                    {# <button class="btn btn-primary">Anzuzeigende Seite wählen</button> #}
-                    <button class="btn btn-primary" id="freeze-current-page">
-                        <i class="far fa-snowflake"></i> Aktuelle Seite einfrieren
+                <div id="configuration-buttons" class="whiteRoundedRectangle">
+                    <button class="btn btn-primary" id="edit-pavo-config">
+                        <i class="fas fa-pen"></i> Pavo Konfiguration bearbeiten
                     </button>
-                    <button class="btn btn-primary" id="resume-tab-switch-loops">
-                        <i class="far fa-play-circle"></i> Tab-Umschalt Schleife fortsetzen
-                    </button>
-
-                    <button class="btn btn-primary" id="load-url"><i class="far fa-eye"></i> URL in Fenster anzeigen</button>
-                    <label for="load-url-url">URL</label>
-                    <input type="text" id="load-url-url">
-
-                    <button class="btn btn-primary" id="reload-windows"><i class="fas fa-redo"></i> Aktuelle Seite neu laden</button>
                 </div>
+            </section>
 
-                <p class="caption">
-                    <small>Hinweis: Die Funktionsknöpfe beziehen sich immer auf alle aktuell ausgewählten Fenster</small>
-                </p>
+            <div id="dialog-json-editor" title="Konfiguration bearbeiten">
+                <div id="json-editor"></div>
             </div>
-        </div>
-
-        <div id="configuration-edit">
-
-            <h2>Konfigurationsbearbeitung</h2>
-
-            <div id="configuration-buttons">
-                <button class="btn btn-primary" id="edit-pavo-config">
-                    <i class="fas fa-pen"></i> Pavo Konfiguration bearbeiten
-                </button>
+            <div id="dialog-confirm-configuration-save" title="Konfiguration speichern?">
+                <p><i class="fas fa-exclamation-triangle"></i> Die aktuelle Konfiguration wird überschrieben. Fortfahren?</p>
+                <p><i class="fas fa-info-circle"></i> Die neue Konfiguration wird erst beim nächsten Neustart der Anwendung übernommen</p>
             </div>
+
         </div>
 
-        <div id="dialog-json-editor" title="Konfiguration bearbeiten">
-            <div id="json-editor"></div>
-        </div>
-        <div id="dialog-confirm-configuration-save" title="Konfiguration speichern?">
-            <p><span class="fas fa-exclamation-triangle"></span> Die aktuelle Konfiguration wird überschrieben. Fortfahren?</p>
-        </div>
-
-    </div>
+    </main>
 
 {% endblock %}
