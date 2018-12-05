@@ -37,6 +37,10 @@
         "password": {
           "$ref": "#/definitions/Selector",
           "description": "The password input field selector relative from the form"
+        },
+        "redirectsToMainUrl": {
+          "type": "boolean",
+          "description": "Defines whether a redirect to the main URL is expected after a successful login"
         }
       }
     },
