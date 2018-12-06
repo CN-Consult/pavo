@@ -213,7 +213,10 @@ class Window
                 devTools: false,
 
                 // Disable node integration for the browser windows because the tabs don't need access to node APIs
-                nodeIntegration: false
+                nodeIntegration: false,
+
+                // Sandbox mode improves the performance of browser windows
+                sandbox: true
             }
         };
 
