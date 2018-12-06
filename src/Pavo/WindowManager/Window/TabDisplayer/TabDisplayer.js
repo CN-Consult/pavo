@@ -23,7 +23,7 @@ class TabDisplayer
     {
         this.currentTabType = "";
         this.currentTab = null;
-        this.isCustomPageDisplayed = false;
+        this.customPageTab = null;
     }
 
 
@@ -62,11 +62,11 @@ class TabDisplayer
     /**
      * Returns whether the tab displayer displays a custom page at the moment.
      *
-     * @return {boolean} True if the tab displayer displays a custom page at the moment, false otherwise
+     * @return {null|Tab} The tab whose browser window displays a custom url or null
      */
-    getIsCustomPageDisplayed()
+    getCustomPageTab()
     {
-        return this.isCustomPageDisplayed;
+        return this.customPageTab;
     }
 
 
@@ -98,10 +98,11 @@ class TabDisplayer
      * Moves a specific tab to the top of the stack of browser windows.
      *
      * @param {Tab} _tab The tab
+     * @param {Boolean} _startReloadLoopForReloadTabs If true the reload loop will be started if the tab is a reload tab
      *
      * @returns {Promise} The promise that moves the tab to the top of the stack of browser windows
      */
-    showTab(_tab)
+    showTab(_tab, _startReloadLoopForReloadTabs)
     {
         tabDisplayerLogger.debug("Showing tab #" + _tab.getDisplayId());
 
@@ -125,7 +126,7 @@ class TabDisplayer
                     else
                     {
                         tabDisplayerLogger.debug("Starting reload loop of #" + _tab.getDisplayId());
-                        self.tabReloadLoop.start(_tab).then(function(){
+                        self.tabReloadLoop.initialize(_tab, _startReloadLoopForReloadTabs).then(function(){
                             self.hideCurrentTab("reload").then(function(){
                                 self.currentTabType = "reload";
                                 self.currentTab = _tab;
@@ -173,7 +174,7 @@ class TabDisplayer
     displayCustomURL(_url)
     {
         tabDisplayerLogger.debug("Displaying custom url \"" + _url + "\" in tab #" + this.currentTab.getDisplayId());
-        this.isCustomPageDisplayed = true;
+        this.customPageTab = this.currentTab;
         let currentTopBrowserWindowPromise = this.getCurrentTopBrowserWindow();
 
         return new Promise(function(_resolve, _reject){
@@ -195,21 +196,29 @@ class TabDisplayer
      */
     restoreOriginalPage()
     {
-        let currentTopBrowserWindowPromise = this.getCurrentTopBrowserWindow();
+        if (this.customPageTab === null)
+        {
+            return new Promise(function(_resolve, _reject){
+                _reject("ERROR: No custom page is being displayed at the moment");
+            });
+        }
 
-        let self = this;
-        return new Promise(function(_resolve, _reject){
-            if (! currentTopBrowserWindowPromise) _reject("ERROR: Window has no top browser window");
-            else
-            {
-                currentTopBrowserWindowPromise.then(function(_topBrowserWindow){
+        if (this.customPageTab.getReloadTime() === 0)
+        {
+            let self = this;
+            return new Promise(function(_resolve){
+                self.staticBrowserWindowManager.getBrowserWindowForTab(self.customPageTab).then(function(_browserWindow){
 
                     // TODO: Only if url is different
-                    _topBrowserWindow.loadURL(self.currentTab.getURL());
-                    self.isCustomPageDisplayed = false;
+                    _browserWindow.loadURL(self.customPageTab.getURL());
+                    self.customPageTab = null;
                     _resolve("Tab restored");
                 });
-            }
+            });
+        }
+        else return new Promise(function(_resolve){
+            // No page restore is necessary because the reload browser windows contents will be overridden on tab reload loop continue
+            _resolve("No restore necessary");
         });
     }
 

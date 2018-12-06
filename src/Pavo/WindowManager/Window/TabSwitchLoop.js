@@ -98,6 +98,8 @@ class TabSwitchLoop extends EventEmitter
 
     /**
      * Pauses the tab switch loop if it is currently running.
+     *
+     * @emits The "halt" event when the halt is complete
      */
     halt()
     {
@@ -107,10 +109,18 @@ class TabSwitchLoop extends EventEmitter
 
             this.remainingDisplayTime -= (Date.now() - this.nextTabTimeoutStart);
 
-            if (this.tabDisplayer.currentTabType === "reload") this.tabDisplayer.getTabReloadLoop().halt();
+            let self = this;
+            let stopTabReloadLoopPromise = new Promise(function(_resolve) {
+                if (self.tabDisplayer.currentTabType === "reload") self.tabDisplayer.getTabReloadLoop().stop().then(function(){
+                    _resolve("Tab reload loop stopped");
+                });
+                else _resolve("No tab reload loop stop necessary");
+            });
 
-            this.isActive = false;
-            this.emit("halt", { tab: this.tabDisplayer.getCurrentTab(), remainingDisplayTime: this.getRemainingDisplayTime(), isActive: this.isActive });
+            stopTabReloadLoopPromise.then(function(){
+                self.isActive = false;
+                self.emit("halt", { tab: self.tabDisplayer.getCurrentTab(), remainingDisplayTime: self.getRemainingDisplayTime(), isActive: self.isActive });
+            });
         }
     }
 
@@ -122,6 +132,27 @@ class TabSwitchLoop extends EventEmitter
     continue()
     {
         let self = this;
+
+        let restoreOriginalTabPromise = new Promise(function(_resolve){
+            if (self.tabDisplayer.getCustomPageTab())
+            {
+                self.tabDisplayer.restoreOriginalPage().then(function(){
+                    _resolve("Original page restored");
+                });
+            }
+            else _resolve("No original page restore necessary");
+        });
+
+        let continueTabReloadLoopPromise = new Promise(function(_resolve){
+            if (self.tabDisplayer.currentTabType === "reload")
+            {
+                self.tabDisplayer.getTabReloadLoop().continue().then(function(){
+                    _resolve("Tab reload loop continued");
+                });
+            }
+            else _resolve("No tab reload loop continue necessary");
+        });
+
         return new Promise(function(_resolve){
 
             if (self.isActive) _resolve("No continue necessary, tab switch loop already running");
@@ -129,12 +160,13 @@ class TabSwitchLoop extends EventEmitter
             {
                 self.emit("continue", { tab: self.tabDisplayer.getCurrentTab(), remainingDisplayTime: self.getRemainingDisplayTime(), isActive: self.isActive });
                 self.isActive = true;
-                if (self.tabDisplayer.getIsCustomPageDisplayed()) self.tabDisplayer.restoreOriginalPage();
 
-                if (self.tabDisplayer.currentTabType === "reload") self.tabDisplayer.getTabReloadLoop().continue();
-
-                self.showNextTab().then(function(){
-                    _resolve("Tab switch loop continued");
+                restoreOriginalTabPromise.then(function(){
+                    continueTabReloadLoopPromise.then(function(){
+                        self.showNextTab().then(function(){
+                            _resolve("Tab switch loop continued");
+                        });
+                    });
                 });
             }
         });
@@ -190,7 +222,7 @@ class TabSwitchLoop extends EventEmitter
 
         let self = this;
         return new Promise(function(_resolve){
-            self.tabDisplayer.showTab(_tab).then(function(){
+            self.tabDisplayer.showTab(_tab, self.isActive).then(function(){
                 self.remainingDisplayTime = _tab.getDisplayTime();
                 self.emit("show", { tab: self.tabDisplayer.getCurrentTab(), remainingDisplayTime: self.remainingDisplayTime, isActive: self.isActive });
                 _resolve("Tab shown");
@@ -210,18 +242,26 @@ class TabSwitchLoop extends EventEmitter
         let tabList = this.tabDisplayer.getTabList();
         let tab = tabList.getTab(_tabId);
 
-        let self = this;
-        return new Promise(function(_resolve, _reject){
+        if (! tab) return new Promise(function(_resolve, _reject){
+            _reject("Tab is not set");
+        });
 
-            if (tab)
-            {
+        let self = this;
+        let stopTabReloadLoopPromise = new Promise(function(_resolve){
+            let currentTab = self.tabDisplayer.getCurrentTab();
+            if (currentTab && currentTab.getReloadTime() > 0) self.tabDisplayer.getTabReloadLoop().stop().then(function(){
+                _resolve("Tab reload loop stopped");
+            });
+            else _resolve("No tab reload loop stop necessary");
+        });
+
+        return new Promise(function(_resolve){
+            stopTabReloadLoopPromise.then(function(){
                 self.showTab(tab).then(function(){
                     tabList.setCurrentTabIndex(_tabId);
                     _resolve("Switched to page");
                 });
-            }
-            else _reject("Tab is not set");
-
+            });
         });
     }
 }

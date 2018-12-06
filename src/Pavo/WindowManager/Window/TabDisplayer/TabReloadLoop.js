@@ -54,10 +54,11 @@ class TabReloadLoop
      * Initializes the reload loop for a specific tab.
      *
      * @param {Tab} _tab The tab
+     * @param {Boolean} _startLoop If true the tab reload loop will be started
      *
      * @return {Promise} The promise that starts the reload loop
      */
-    start(_tab)
+    initialize(_tab, _startLoop)
     {
         let self = this;
         let waitForPreviousLoopStop = new Promise(function(_resolve){
@@ -82,8 +83,10 @@ class TabReloadLoop
                 // Initialize the reload loop
                 self.isActive = true;
 
-                // Initialize the reload interval
-                self.reloadInterval = setInterval(reload, _tab.getReloadTime());
+                if (_startLoop)
+                { // Initialize the reload interval
+                    self.reloadInterval = setInterval(reload, _tab.getReloadTime());
+                }
 
                 // Perform the initial reload.
                 // This is necessary because the reload loop doesn't start until <reloadTime> milliseconds passed.
@@ -109,7 +112,7 @@ class TabReloadLoop
      */
     continue()
     {
-        return this.start(this.reloadTab);
+        return this.initialize(this.reloadTab, true);
     }
 
     /**
@@ -120,13 +123,17 @@ class TabReloadLoop
     stop()
     {
         this.halt();
+        this.isActive = false;
 
         let self = this;
         return new Promise(function(_resolve){
-            self.reloadBrowserWindowManager.unloadTab(self.reloadTab).then(function(){
-                self.isActive = false;
-                _resolve("Tab reload loop stopped");
-            });
+            if (self.reloadTab)
+            {
+                self.reloadBrowserWindowManager.unloadTab(self.reloadTab).then(function(){
+                    _resolve("Tab reload loop stopped");
+                });
+            }
+            else _resolve("No previous tab reload loop to stop");
         });
     }
 
@@ -146,11 +153,15 @@ class TabReloadLoop
         let self = this;
 
         return new Promise(function(_resolve){
-            self.reloadBrowserWindowManager.reloadTabInBackgroundBrowserWindow(self.reloadTab).then(function(){
-                self.reloadBrowserWindowManager.showTab(self.reloadTab).then(function(){
-                    _resolve("Tab reloaded");
+            if (! self.isActive) _resolve("Tab reload loop not active");
+            else
+            {
+                self.reloadBrowserWindowManager.reloadTabInBackgroundBrowserWindow(self.reloadTab).then(function(){
+                    self.reloadBrowserWindowManager.showTab(self.reloadTab).then(function(){
+                        _resolve("Tab reloaded");
+                    });
                 });
-            });
+            }
         });
     }
 }
