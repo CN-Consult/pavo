@@ -24,6 +24,7 @@ const SwitchToPageEventProcessor = require(__dirname + "/EventProcessor/WebClien
 const GetLoadedConfigurationEventProcessor = require(__dirname + "/EventProcessor/WebClient/GetLoadedConfigurationEventProcessor");
 const EditConfigurationEventProcessor = require(__dirname + "/EventProcessor/WebClient/EditConfigurationEventProcessor");
 
+const CustomUrlLoadEventProcessor = require(__dirname + "/EventProcessor/Pavo/CustomUrlLoadEventProcessor");
 const TabSwitchEventProcessor = require(__dirname + "/EventProcessor/Pavo/TabSwitchEventProcessor");
 
 /**
@@ -124,7 +125,8 @@ class WebServer extends EventEmitter
         };
 
         this.pavoEventProcessors = {
-            "tabSwitch": new TabSwitchEventProcessor(this.socket, _pavoApi)
+            "tabSwitch": new TabSwitchEventProcessor(this.socket, _pavoApi),
+            "customUrlLoad": new CustomUrlLoadEventProcessor(this.socket, _pavoApi)
         };
     }
 

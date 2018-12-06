@@ -43,7 +43,7 @@
             {% set pageDefaults = _windowStatus.configuration.pageDefaults %}
             {% for pageIndex in range(0, _windowStatus.configuration.pages.length) %}
                 {% set page = _windowStatus.configuration.pages[pageIndex] %}
-                <tr class="defined-page {% if (_windowStatus.currentTab === pageIndex) %}active{% endif %}"
+                <tr class="defined-page {% if (_windowStatus.currentTab === pageIndex and not _windowStatus.customURL) %}active{% endif %}"
                         id="tab-{{ pageIndex }}"
                         data-page="{{ pageIndex }}">
 
@@ -59,21 +59,20 @@
                             <p>S</p>
                         {% endif %}
                     </td>
-                    <td class="tab-name" data-toggle="tooltip" title="Umschalten auf {{ page.url }}"
-                    >
+                    <td class="tab-name" data-toggle="tooltip" title="Umschalten auf {{ page.url }}">
                         {% if page.name %}{{ page.name }}{% else %}{{ page.url }}{% endif %}
                     </td>
                     <td class="remaining-time"></td>
                 </tr>
             {% endfor %}
 
-            <tr id="custom-page" class="custom-page" hidden>
+            <tr id="custom-page" class="custom-page {% if _windowStatus.customURL %}active{% endif %}">
 
                 {# Page type (C = Custom) #}
                 <td class="tab-type">
                     <p>C</p>
                 </td>
-                <td colspan="2"></td>
+                <td colspan="2" class="tab-name">{% if _windowStatus.customURL %}{{ _windowStatus.customURL }}{% endif %}</td>
             </tr>
         </table>
 

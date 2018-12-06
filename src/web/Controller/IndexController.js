@@ -23,12 +23,21 @@ class IndexController extends BaseController
      */
     respond(_request, _response)
     {
-        let windowsStatus = this.pavoApi.getWindowsStatus();
-        if (! Array.isArray(windowsStatus)) windowsStatus = [];
+        let getWindowsStatusPromise = this.pavoApi.getWindowsStatus();
+        if (typeof getWindowsStatusPromise === "string")
+        {
+            getWindowsStatusPromise = new Promise(function(_resolve){
+                _resolve(getWindowsStatusPromise);
+            });
+        }
 
-        _response.render("index.njk", {
-            dashboardName: os.hostname(),
-            windowsStatus: windowsStatus
+        getWindowsStatusPromise.then(function(_windowsStatus){
+            if (! Array.isArray(_windowsStatus)) _windowsStatus = [];
+
+            _response.render("index.njk", {
+                dashboardName: os.hostname(),
+                windowsStatus: _windowsStatus
+            });
         });
     }
 }

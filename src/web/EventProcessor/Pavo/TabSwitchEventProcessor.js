@@ -8,7 +8,7 @@
 const BaseEventProcessor = require(__dirname + "/../BaseEventProcessor");
 
 /**
- * Handles the "show" events of the tab switch loop.
+ * Handles the "show", "halt" and "continue" events of the tab switch loop.
  */
 class TabSwitchEventProcessor extends BaseEventProcessor
 {

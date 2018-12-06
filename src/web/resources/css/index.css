@@ -108,6 +108,15 @@ table.tab-list td:not(:last-child) {
 table.tab-list tr.active td.tab-type p {
     background-color: #FA0;
 }
+table.tab-list tr#custom-page {
+    display: none;
+}
+table.tab-list tr.active#custom-page {
+    display: table-row;
+}
+table.tab-list tr.active#custom-page td.tab-type p {
+    background-color: #AAA;
+}
 table.tab-list td.tab-type p {
     border: 1px solid black;
     border-radius: 100%;

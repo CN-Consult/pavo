@@ -23,6 +23,7 @@ $(document).ready(function() {
     $("div#pavo-overview section#pavo-configuration-edit button#edit-pavo-config").on("click", showJsonEditor);
 
     socket.on("tabSwitchLoopStatusUpdate", handleTabSwitchLoopStatusUpdate);
+    socket.on("customUrlLoad", handleCustomUrlLoad);
 
     initializeTimeProgressBars();
 
@@ -189,26 +190,35 @@ function handleTabSwitch(_tabSwitchData)
 {
     let tabId = _tabSwitchData["tab"];
     let windowId = _tabSwitchData["window"];
-    let tabTableRows = $("div#window-configuration-" + windowId + " table.tab-list tr");
 
-    let tabTableRowIndex = 0;
-    tabTableRows.each(function(_tabTableRow){
+    setActiveTab(windowId, tabId);
+}
 
-        let tabTableRow = tabTableRows[tabTableRowIndex];
+/**
+ * Sets the "active" class for a specific tab in a specific window and removes the "active" class from all other tabs.
+ *
+ * @param {int} _windowId The window id
+ * @param {int} _tabId The tab id
+ */
+function setActiveTab(_windowId, _tabId)
+{
+    let tabTableRows = $("div#window-configuration-" + _windowId + " table.tab-list tr");
+
+    tabTableRows.each(function(_tabTableRowIndex){
+
+        let tabTableRow = tabTableRows[_tabTableRowIndex];
 
         // Highlight the displayed tab
         if ($(tabTableRow).hasClass("active"))
         {
             // Remove the active class from all tabs that are not the currently displayed tab
-            if (tabTableRowIndex !== tabId) $(tabTableRow).removeClass("active");
+            if (_tabTableRowIndex !== _tabId) $(tabTableRow).removeClass("active");
         }
         else
         {
             // Add the active class to the currently displayed tab
-            if (tabTableRowIndex === tabId) $(tabTableRow).addClass("active");
+            if (_tabTableRowIndex === _tabId) $(tabTableRow).addClass("active");
         }
-
-        tabTableRowIndex++;
     });
 }
 
@@ -251,4 +261,35 @@ function showJsonEditor()
 function getWindowIdFromElement(_node)
 {
     return $(_node).closest("div.window-configuration").data("window");
+}
+
+/**
+ * Removes the "active" class from all table rows of the tab list and shows the custom page table row.
+ *
+ * @param {object} _data The data which contains the window id and the url that was loaded
+ */
+function handleCustomUrlLoad(_data)
+{
+    // Remove "active" class from all tabs
+    let windowTabs = $("div#window-configuration-" + _data["window"] + " table.tab-list tr");
+    windowTabs.removeClass("active");
+
+    showCustomUrl(_data["window"], _data["url"]);
+}
+
+/**
+ * Inserts a url into and shows the custom page table row for a specified window.
+ *
+ * @param {int} _windowId The id of the window
+ * @param {string} _url The url to display in the custom page table row
+ */
+function showCustomUrl(_windowId, _url)
+{
+    let tabListTable = $("div#window-configuration-" + _windowId + " table.tab-list");
+    let customUrlTableRow = $(tabListTable).find("tr#custom-page");
+
+    customUrlTableRow.find("td.tab-name").text(_url);
+
+    let lastTableRowNumber = $(tabListTable).find("tr").length - 1;
+    setActiveTab(_windowId, lastTableRowNumber);
 }

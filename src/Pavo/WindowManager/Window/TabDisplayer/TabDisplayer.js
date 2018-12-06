@@ -5,6 +5,7 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const EventEmitter = require("events");
 const ReloadBrowserWindowManager = require(__dirname + "/BrowserWindowManager/ReloadBrowserWindowManager");
 const StaticBrowserWindowManager = require(__dirname + "/BrowserWindowManager/StaticBrowserWindowManager");
 const TabReloadLoop = require(__dirname + "/TabReloadLoop");
@@ -14,13 +15,15 @@ const tabDisplayerLogger = require("log4js").getLogger("tabDisplayer");
  * Manages showing and hiding of tabs for a window.
  * This class can only show tabs from the tab list that it was initialized with.
  */
-class TabDisplayer
+class TabDisplayer extends EventEmitter
 {
     /**
      * TabDisplayer constructor.
      */
     constructor()
     {
+        super();
+
         this.currentTabType = "";
         this.currentTab = null;
         this.customPageTab = null;
@@ -177,13 +180,18 @@ class TabDisplayer
         this.customPageTab = this.currentTab;
         let currentTopBrowserWindowPromise = this.getCurrentTopBrowserWindow();
 
+        let self = this;
         return new Promise(function(_resolve, _reject){
             if (! currentTopBrowserWindowPromise) _reject("ERROR: Window has no top browser window");
             else
             {
                 currentTopBrowserWindowPromise.then(function(_topBrowserWindow){
                     _topBrowserWindow.loadURL(_url);
-                    _resolve("URL loaded into browser window");
+
+                    _topBrowserWindow.webContents.once("did-navigate", function(){
+                        self.emit("customUrlLoad", { tab: self.currentTab, url: _topBrowserWindow.webContents.getURL() });
+                        _resolve("URL loaded into browser window");
+                    });
                 });
             }
         });

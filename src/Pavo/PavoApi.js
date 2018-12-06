@@ -88,7 +88,7 @@ class PavoApi
      * Returns the status for each window of the pavo app.
      * This includes the configuration and whether the tab switch loop is active
      *
-     * @return {string|Object} The error message if the pavo app is not initialized yet or the window status object
+     * @return {string|Promise} The error message if the pavo app is not initialized yet or the promise that returns the window status object
      */
     getWindowsStatus()
     {
@@ -99,28 +99,52 @@ class PavoApi
         let windowConfigurations = this.getLoadedConfiguration().windows;
         let windows = this.getWindows();
 
-        if (Array.isArray(windowConfigurations))
+        if (! Array.isArray(windowConfigurations))
         {
-            for (let windowId in windowConfigurations)
-            { // Add the isTabSwitchLoopActive information to the running configuration
+            return new Promise(function(_resolve, _reject) {
+                _reject("No windows found in loaded configuration");
+            });
+        }
+        else
+        {
+            let numberOfWindows = windowConfigurations.length;
+            let numberOfProcessedWindows = 0;
 
-                if (windowConfigurations.hasOwnProperty(windowId))
+            return new Promise(function(_resolve){
+                for (let windowId in windowConfigurations)
                 {
-                    windowsStatus[windowId] = {};
-                    windowsStatus[windowId].configuration = windowConfigurations[windowId];
-                    windowsStatus[windowId].isTabSwitchLoopActive = windows[windowId].getTabSwitchLoop().getIsActive();
-
-                    let currentTab = windows[windowId].getTabSwitchLoop().getTabDisplayer().getCurrentTab();
-                    if (currentTab)
+                    if (windowConfigurations.hasOwnProperty(windowId))
                     {
-                        windowsStatus[windowId].currentTab = currentTab.getId();
-                        windowsStatus[windowId].remainingDisplayTime = windows[windowId].getTabSwitchLoop().getRemainingDisplayTime();
+                        windowsStatus[windowId] = {};
+                        windowsStatus[windowId].configuration = windowConfigurations[windowId];
+                        windowsStatus[windowId].isTabSwitchLoopActive = windows[windowId].getTabSwitchLoop().getIsActive();
+
+                        let currentTab = windows[windowId].getTabSwitchLoop().getTabDisplayer().getCurrentTab();
+                        if (currentTab)
+                        {
+                            windowsStatus[windowId].currentTab = currentTab.getId();
+                            windowsStatus[windowId].remainingDisplayTime = windows[windowId].getTabSwitchLoop().getRemainingDisplayTime();
+                        }
+
+                        let topBrowserWindowPromise;
+                        if (windows[windowId].getTabSwitchLoop().getTabDisplayer().getCustomPageTab())
+                        {
+                            topBrowserWindowPromise = windows[windowId].getTabSwitchLoop().getTabDisplayer().getCurrentTopBrowserWindow();
+                        }
+                        else topBrowserWindowPromise = new Promise(function(_resolve){
+                            _resolve(null);
+                        });
+
+                        topBrowserWindowPromise.then(function(_browserWindow){
+                            if (_browserWindow) windowsStatus[windowId].customURL = _browserWindow.webContents.getURL();
+
+                            numberOfProcessedWindows++;
+                            if (numberOfProcessedWindows === numberOfWindows - 1) _resolve(windowsStatus);
+                        });
                     }
                 }
-            }
+            });
         }
-
-        return windowsStatus;
     }
 
     /**
