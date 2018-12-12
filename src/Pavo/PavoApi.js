@@ -123,24 +123,18 @@ class PavoApi
                         if (currentTab)
                         {
                             windowsStatus[windowId].currentTab = currentTab.getId();
-                            windowsStatus[windowId].remainingDisplayTime = windows[windowId].getTabSwitchLoop().getRemainingDisplayTime();
+                            windowsStatus[windowId].remainingDisplayTime = windows[windowId].getTabSwitchLoop().calculateRemainingCycleTime();
                         }
 
-                        let topBrowserWindowPromise;
                         if (windows[windowId].getTabSwitchLoop().getTabDisplayer().getCustomPageTab())
                         {
-                            topBrowserWindowPromise = windows[windowId].getTabSwitchLoop().getTabDisplayer().getCurrentTopBrowserWindow();
+                            let topBrowserWindow = windows[windowId].getTabSwitchLoop().getTabDisplayer().getCurrentTopBrowserWindow();
+                            windowsStatus[windowId].customURL = topBrowserWindow.webContents.getURL();
                         }
-                        else topBrowserWindowPromise = new Promise(function(_resolve){
-                            _resolve(null);
-                        });
 
-                        topBrowserWindowPromise.then(function(_browserWindow){
-                            if (_browserWindow) windowsStatus[windowId].customURL = _browserWindow.webContents.getURL();
 
-                            numberOfProcessedWindows++;
-                            if (numberOfProcessedWindows === numberOfWindows - 1) _resolve(windowsStatus);
-                        });
+                        numberOfProcessedWindows++;
+                        if (numberOfProcessedWindows === numberOfWindows - 1) _resolve(windowsStatus);
                     }
                 }
             });
@@ -256,7 +250,6 @@ class PavoApi
         let window = this.getWindows()[_windowId];
         if (window)
         {
-            window.getTabSwitchLoop().halt();
             window.getTabSwitchLoop().switchToPage(_tabId);
         }
     }

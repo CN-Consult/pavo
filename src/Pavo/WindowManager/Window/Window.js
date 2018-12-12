@@ -126,7 +126,7 @@ class Window
             {
                 reloadAfterAppInitTabs.forEach(function(_tab){
 
-                    self.tabDisplayer.reloadStaticTab(_tab).then(function(){
+                    self.tabDisplayer.reloadTab(_tab).then(function(){
                         numberOfReloadedTabs++;
                         if (numberOfReloadedTabs === numberOfReloadAfterAppInitTabs)
                         {

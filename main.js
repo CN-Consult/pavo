@@ -29,6 +29,7 @@ log4js.configure({
         windowManager: { type: "file", filename: __dirname + "/../../log/WindowManager.log" },
         window: { type: "file", filename: __dirname + "/../../log/Window.log" },
         tabDisplayer: { type: "file", filename: __dirname + "/../../log/TabDisplayer.log" },
+        tabReloadLoop: { type: "file", filename: __dirname + "/../../log/TabReloadLoop.log" },
         tab: { type: "file", filename: __dirname + "/../../log/Tab.log" },
         autoLogin: { type: "file", filename: __dirname + "/../../log/AutoLogin.log" },
         pavoApi: { type: "file", filename: __dirname + "/../../log/PavoApi.log" }
@@ -39,6 +40,7 @@ log4js.configure({
         windowManager: { appenders: [ "console"/*, "windowManager"*/ ], level: "debug" },
         window: { appenders: [ "console"/*, "window"*/ ], level: "debug"},
         tabDisplayer: { appenders: [ "console"/*, "tabDisplayer"*/ ], level: "debug" },
+        tabReloadLoop: { appenders: [ "console"/*, "tabReloadLoop"*/ ], level: "debug" },
         tab: { appenders: [ "console"/*, "tab"*/ ], level: "debug" },
         autoLogin: { appenders: [ "console"/*, "autoLogin"*/ ], level: "debug" },
         pavoApi: { appenders: ["console"/*, "pavoApi"*/ ], level: "debug" }

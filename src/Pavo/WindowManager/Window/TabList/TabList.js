@@ -32,6 +32,16 @@ class TabList
         this.currentTabIndex = _currentTabIndex;
     }
 
+    /**
+     * Returns the list of all tabs.
+     *
+     * @returns {Tab[]} The list of all tabs
+     */
+    getTabs()
+    {
+        return this.tabs;
+    }
+
 
     // Public Methods
 
@@ -96,36 +106,6 @@ class TabList
         }
 
         return false;
-    }
-
-    /**
-     * Returns whether this tab list contains at least one tab with a reload time equal 0 seconds.
-     *
-     * @return {boolean} True if this tab list contains at least one tab with a reload time equal 0 seconds, false otherwise
-     */
-    containsStaticTabs()
-    {
-        for (let tab of this.tabs)
-        {
-            if (tab.reloadTime === 0) return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Returns all static tabs of this tab list.
-     *
-     * @return {Tab[]} The list of static tabs
-     */
-    getStaticTabs()
-    {
-        let staticTabs = [];
-        this.tabs.forEach(function(_tab){
-            if (_tab.reloadTime === 0) staticTabs.push(_tab);
-        });
-
-        return staticTabs;
     }
 
     /**

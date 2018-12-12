@@ -5,48 +5,26 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const Loop = require(__dirname + "/../../../../Util/Loop");
+const tabReloadLoopLogger = require("log4js").getLogger("tabReloadLoop");
+
 /**
  * Handles reloading of tabs.
  */
-class TabReloadLoop
+class TabReloadLoop extends Loop
 {
     /**
      * TabReloadLoop constructor.
      *
-     * @param {ReloadBrowserWindowManager} _reloadBrowserWindowManager The reload browser window manager
+     * @param {BrowserWindowManager} _browserWindowManager The browser window manager
      */
-    constructor(_reloadBrowserWindowManager)
+    constructor(_browserWindowManager)
     {
-        this.reloadBrowserWindowManager = _reloadBrowserWindowManager;
+        super();
 
+        this.browserWindowManager = _browserWindowManager;
         this.reloadTab = null;
-        this.reloadInterval = null;
-        this.isActive = false;
     }
-
-
-    // Getters and Setters
-
-    /**
-     * Returns whether this tab reload loop is currently active.
-     *
-     * @return {boolean} True if this tab reload loop is currently active, false otherwise
-     */
-    getIsActive()
-    {
-        return this.isActive;
-    }
-
-    /**
-     * Returns the current reload tab.
-     *
-     * @returns {Tab} The current reload tab
-     */
-    getReloadTab()
-    {
-        return this.reloadTab;
-    }
-
 
     // Public Methods
 
@@ -54,87 +32,56 @@ class TabReloadLoop
      * Initializes the reload loop for a specific tab.
      *
      * @param {Tab} _tab The tab
-     * @param {Boolean} _startLoop If true the tab reload loop will be started
-     *
-     * @return {Promise} The promise that starts the reload loop
      */
-    initialize(_tab, _startLoop)
+    initialize(_tab)
     {
-        let self = this;
-        let waitForPreviousLoopStop = new Promise(function(_resolve){
-            if (self.isActive)
-            {
-                let stop = self.stop.bind(self);
-                stop().then(function(){
-                    _resolve("Previous loop stopped.");
-                });
-            }
-            else _resolve("No previous loop running.");
-        });
+        tabReloadLoopLogger.debug("Initializing tab reload loop for tab #" + _tab.getDisplayId());
 
-        let reload = this.reload.bind(this);
+        this.init(_tab.getReloadTime());
+        this.reloadTab = _tab;
+    }
+
+
+    // Hooks
+
+    /**
+     * Method that is called on each cycle.
+     *
+     * @returns {Promise} The promise that executes tab reload loop specific code
+     */
+    onCycle()
+    {
+        return this.reload();
+    }
+
+    /**
+     * Method that is called on loop halt.
+     */
+    onLoopHalt()
+    {
+        tabReloadLoopLogger.debug("Halting tab reload loop for tab #" + this.reloadTab.getDisplayId());
+    }
+
+    /**
+     * Method that is called on loop continue.
+     *
+     * @returns {Promise} The promise that executes tab reload loop specific code
+     */
+    onLoopContinue()
+    {
+        tabReloadLoopLogger.debug("Continuing tab reload loop for tab #" + this.reloadTab.getDisplayId());
 
         return new Promise(function(_resolve){
-            waitForPreviousLoopStop.then(function(){
-
-                // Update the reload tab
-                self.reloadTab = _tab;
-
-                // Initialize the reload loop
-                self.isActive = true;
-
-                if (_startLoop)
-                { // Initialize the reload interval
-                    self.reloadInterval = setInterval(reload, _tab.getReloadTime());
-                }
-
-                // Perform the initial reload.
-                // This is necessary because the reload loop doesn't start until <reloadTime> milliseconds passed.
-                reload().then(function(){
-                    _resolve("Tab reload loop started.");
-                });
-            });
+            _resolve(null);
         });
     }
 
     /**
-     * Halts the tab reload loop.
+     * Method that is called on loop stop.
      */
-    halt()
+    onLoopStop()
     {
-        clearInterval(this.reloadInterval);
-    }
-
-    /**
-     * Continues the tab reload loop.
-     *
-     * @return {Promise} The promise that continues the tab reload loop
-     */
-    continue()
-    {
-        return this.initialize(this.reloadTab, true);
-    }
-
-    /**
-     * Stops the reload loop for the currently reloaded tab.
-     *
-     * @return {Promise} The promise that stops the reload loop
-     */
-    stop()
-    {
-        this.halt();
-        this.isActive = false;
-
-        let self = this;
-        return new Promise(function(_resolve){
-            if (self.reloadTab)
-            {
-                self.reloadBrowserWindowManager.unloadTab(self.reloadTab).then(function(){
-                    _resolve("Tab reload loop stopped");
-                });
-            }
-            else _resolve("No previous tab reload loop to stop");
-        });
+        tabReloadLoopLogger.debug("Stopping tab reload loop for tab #" + this.reloadTab.getDisplayId());
     }
 
 
@@ -151,28 +98,22 @@ class TabReloadLoop
     reload()
     {
         let self = this;
-
         return new Promise(function(_resolve){
-            if (! self.isActive) _resolve("Tab reload loop not active");
-            else
-            {
-                self.reloadBrowserWindowManager.reloadTabInBackgroundBrowserWindow(self.reloadTab).then(function(){
-                    self.reloadBrowserWindowManager.showTab(self.reloadTab).then(function(){
-                        _resolve("Tab reloaded");
-                    });
-                });
-            }
+            tabReloadLoopLogger.debug("Reloading tab #" + self.reloadTab.getDisplayId());
+            self.browserWindowManager.reloadTabBrowserWindow(self.reloadTab).then(function(){
+                _resolve("Tab reloaded");
+            });
         });
     }
 }
 
 
 /**
- * The browser window manager for reloads
+ * The browser window manager
  *
- * @type {ReloadBrowserWindowManager} reloadBrowserWindowManager
+ * @type {BrowserWindowManager} browserWindowManager
  */
-TabReloadLoop.reloadBrowserWindowManager = null;
+TabReloadLoop.browserWindowManager = null;
 
 /**
  * The tab that is currently being displayed and reloaded
@@ -180,21 +121,6 @@ TabReloadLoop.reloadBrowserWindowManager = null;
  * @type {Tab} reloadTab
  */
 TabReloadLoop.reloadTab = null;
-
-/**
- * The timeout for the tab reload interval
- * This is saved in order to be able to clear the interval on reload loop stop
- *
- * @type {Object} reloadInterval
- */
-TabReloadLoop.reloadInterval = null;
-
-/**
- * Indicates whether the reload loop is currently active
- *
- * @type {Boolean} isActive
- */
-TabReloadLoop.isActive = false;
 
 
 module.exports = TabReloadLoop;

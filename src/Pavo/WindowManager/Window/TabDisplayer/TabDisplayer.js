@@ -6,8 +6,7 @@
  */
 
 const EventEmitter = require("events");
-const ReloadBrowserWindowManager = require(__dirname + "/BrowserWindowManager/ReloadBrowserWindowManager");
-const StaticBrowserWindowManager = require(__dirname + "/BrowserWindowManager/StaticBrowserWindowManager");
+const BrowserWindowManager = require(__dirname + "/BrowserWindowManager");
 const TabReloadLoop = require(__dirname + "/TabReloadLoop");
 const tabDisplayerLogger = require("log4js").getLogger("tabDisplayer");
 
@@ -24,7 +23,6 @@ class TabDisplayer extends EventEmitter
     {
         super();
 
-        this.currentTabType = "";
         this.currentTab = null;
         this.customPageTab = null;
     }
@@ -90,8 +88,8 @@ class TabDisplayer extends EventEmitter
         // Initialize the browser window managers (if needed)
         let self = this;
         return new Promise(function(_resolve){
-            self.initializeReloadBrowserWindowManager(_browserWindowConfiguration, _tabList);
-            self.initializeStaticBrowserWindowManager(_browserWindowConfiguration, _tabList).then(function(){
+            self.initializeBrowserWindowManager(_browserWindowConfiguration, _tabList).then(function(){
+                if (_tabList.containsReloadTabs()) self.tabReloadLoop = new TabReloadLoop(self.browserWindowManager);
                 _resolve("TabSwitcher initialized");
             });
         });
@@ -107,41 +105,49 @@ class TabDisplayer extends EventEmitter
      */
     showTab(_tab, _startReloadLoopForReloadTabs)
     {
+        if (! _tab)
+        {
+            return new Promise(function(_resolve, _reject){
+                _reject("Tab not set");
+            });
+        }
+        else if (_tab === this.currentTab)
+        {
+            return new Promise(function(_resolve){
+                _resolve("No tab switch necessary");
+            });
+        }
+
+
         tabDisplayerLogger.debug("Showing tab #" + _tab.getDisplayId());
 
         let self = this;
-        return new Promise(function(_resolve, _reject){
+        let startTabReloadLoopIfNecessary = new Promise(function(_resolve){
 
-            if (_tab)
+            if (_tab.getReloadTime() === 0) _resolve("No tab reload loop start necessary");
+            else
             {
-                if (_tab !== self.currentTab)
+                self.tabReloadLoop.initialize(_tab);
+
+                if (_startReloadLoopForReloadTabs)
                 {
-                    if (_tab.getReloadTime() === 0)
-                    {
-                        self.staticBrowserWindowManager.showTab(_tab).then(function(){
-                            self.hideCurrentTab("static").then(function(){
-                                self.currentTabType = "static";
-                                self.currentTab = _tab;
-                                _resolve("Switched to static tab");
-                            });
-                        });
-                    }
-                    else
-                    {
-                        tabDisplayerLogger.debug("Starting reload loop of #" + _tab.getDisplayId());
-                        self.tabReloadLoop.initialize(_tab, _startReloadLoopForReloadTabs).then(function(){
-                            self.hideCurrentTab("reload").then(function(){
-                                self.currentTabType = "reload";
-                                self.currentTab = _tab;
-                                _resolve("Switched to reload tab");
-                            });
-                        });
-                    }
+                    self.tabReloadLoop.start().then(function(){
+                        _resolve("Tab reload loop started");
+                    });
                 }
-                else _resolve("No tab switching necessary: Tab is already being displayed");
+                else _resolve("No tab reload loop start wanted");
             }
-            else _reject("Cannot switch to tab: Tab is not set");
         });
+
+        return new Promise(function(_resolve){
+            self.hideCurrentTab();
+            self.browserWindowManager.showTab(_tab);
+            startTabReloadLoopIfNecessary.then(function(){
+                self.currentTab = _tab;
+                _resolve("Switched to next tab");
+            });
+        });
+
     }
 
     /**
@@ -151,19 +157,15 @@ class TabDisplayer extends EventEmitter
      *
      * @returns {Promise} The promise that reloads the tab if its static
      */
-    reloadStaticTab(_tab)
+    reloadTab(_tab)
     {
         let self  =this;
         return new Promise(function(_resolve){
-            if (_tab.getReloadTime() === 0)
-            {
-                tabDisplayerLogger.debug("Reloading tab #" + _tab.getDisplayId());
+            tabDisplayerLogger.debug("Reloading tab #" + _tab.getDisplayId());
 
-                self.staticBrowserWindowManager.reloadTabBrowserWindow(_tab).then(function() {
-                    _resolve("Tab reloaded.");
-                });
-            }
-            else _resolve("No tab reload necessary.");
+            self.browserWindowManager.reloadTabBrowserWindow(_tab).then(function() {
+                _resolve("Tab reloaded.");
+            });
         });
     }
 
@@ -178,20 +180,17 @@ class TabDisplayer extends EventEmitter
     {
         tabDisplayerLogger.debug("Displaying custom url \"" + _url + "\" in tab #" + this.currentTab.getDisplayId());
         this.customPageTab = this.currentTab;
-        let currentTopBrowserWindowPromise = this.getCurrentTopBrowserWindow();
+        let currentTopBrowserWindow = this.getCurrentTopBrowserWindow();
 
         let self = this;
         return new Promise(function(_resolve, _reject){
-            if (! currentTopBrowserWindowPromise) _reject("ERROR: Window has no top browser window");
+            if (! currentTopBrowserWindow) _reject("ERROR: Window has no top browser window");
             else
             {
-                currentTopBrowserWindowPromise.then(function(_topBrowserWindow){
-                    _topBrowserWindow.loadURL(_url);
-
-                    _topBrowserWindow.webContents.once("did-navigate", function(){
-                        self.emit("customUrlLoad", { tab: self.currentTab, url: _topBrowserWindow.webContents.getURL() });
-                        _resolve("URL loaded into browser window");
-                    });
+                currentTopBrowserWindow.loadURL(_url);
+                currentTopBrowserWindow.webContents.once("did-navigate", function(){
+                    self.emit("customUrlLoad", { tab: self.currentTab, url: currentTopBrowserWindow.webContents.getURL() });
+                    _resolve("URL loaded into browser window");
                 });
             }
         });
@@ -199,70 +198,33 @@ class TabDisplayer extends EventEmitter
 
     /**
      * Restores the original page of the current tab.
-     *
-     * @return {Promise} The promise that restores the original page of the current tab
      */
     restoreOriginalPage()
     {
-        if (this.customPageTab === null)
+        if (this.customPageTab !== null)
         {
-            return new Promise(function(_resolve, _reject){
-                _reject("ERROR: No custom page is being displayed at the moment");
-            });
+            let browserWindow = this.browserWindowManager.getBrowserWindowForTab(this.customPageTab);
+            if (browserWindow)
+            {
+                // TODO: Only if url is different
+                browserWindow.loadURL(this.customPageTab.getURL());
+                this.customPageTab = null;
+            }
         }
-
-        if (this.customPageTab.getReloadTime() === 0)
-        {
-            let self = this;
-            return new Promise(function(_resolve){
-                self.staticBrowserWindowManager.getBrowserWindowForTab(self.customPageTab).then(function(_browserWindow){
-
-                    // TODO: Only if url is different
-                    _browserWindow.loadURL(self.customPageTab.getURL());
-                    self.customPageTab = null;
-                    _resolve("Tab restored");
-                });
-            });
-        }
-        else return new Promise(function(_resolve){
-            // No page restore is necessary because the reload browser windows contents will be overridden on tab reload loop continue
-            _resolve("No restore necessary");
-        });
     }
 
     /**
      * Reloads the current page.
-     *
-     * @return {Promise} The promise that reloads the current page
      */
     reloadCurrentPage()
     {
-        let self = this;
-        return new Promise(function(_resolve){
-            self.getCurrentTopBrowserWindow().then(function(_topBrowserWindow){
-                _topBrowserWindow.webContents.reload();
-                _resolve("Current page reloaded");
-            });
-        });
+        let topBrowserWindow = this.getCurrentTopBrowserWindow();
+        topBrowserWindow.webContents.reload();
+        // TODO: Return promise that resolves on reload done
     }
 
 
     // Private Methods
-
-    /**
-     * Initializes the reload browser window manager if necessary.
-     *
-     * @param {Object} _browserWindowConfiguration The browser window configuration
-     * @param {TabList} _tabList The tab list
-     */
-    initializeReloadBrowserWindowManager(_browserWindowConfiguration, _tabList)
-    {
-        if (_tabList.containsReloadTabs())
-        {
-            this.reloadBrowserWindowManager = new ReloadBrowserWindowManager(_browserWindowConfiguration);
-            this.tabReloadLoop = new TabReloadLoop(this.reloadBrowserWindowManager);
-        }
-    }
 
     /**
      * Initializes the static browser window manager if necessary.
@@ -272,114 +234,53 @@ class TabDisplayer extends EventEmitter
      *
      * @return {Promise} The promise that initializes the static browser window manager if necessary
      */
-    initializeStaticBrowserWindowManager(_browserWindowConfiguration, _tabList)
+    initializeBrowserWindowManager(_browserWindowConfiguration, _tabList)
     {
-        if (_tabList.containsStaticTabs())
-        {
-            this.staticBrowserWindowManager = new StaticBrowserWindowManager(_browserWindowConfiguration);
+        this.browserWindowManager = new BrowserWindowManager(_browserWindowConfiguration);
 
-            // Add all static tabs to the static browser window manager
-            let staticTabs = _tabList.getStaticTabs();
-            let numberOfStaticTabs = staticTabs.length;
+        // Add all tabs to the browser window manager
+        let numberOfTabs = _tabList.getTabs().length;
 
-            let self = this;
-            return new Promise(function(_resolve){
-                staticTabs.forEach(function(_tab){
-                    // TODO: Initialize tabs one by one instead of asynchronous (too lower CPU stress)
-                    self.staticBrowserWindowManager.addTab(_tab).then(function(_numberOfTabBrowserWindows){
-                        if (_numberOfTabBrowserWindows === numberOfStaticTabs)
-                        {
-                            _resolve("All static tabs initialized.");
-                        }
-                    });
+        let self = this;
+        return new Promise(function(_resolve){
+            _tabList.getTabs().forEach(function(_tab){
+                // TODO: Initialize tabs one by one instead of asynchronous (to lower CPU stress)
+                self.browserWindowManager.addTab(_tab).then(function(_numberOfTabBrowserWindows){
+                    if (_numberOfTabBrowserWindows === numberOfTabs)
+                    {
+                        _resolve("All static tabs initialized.");
+                    }
                 });
             });
-        }
-        else return new Promise(function(_resolve){
-            _resolve("No static tab initialization necessary.");
         });
+
     }
 
     /**
      * Hides the currently displayed tab.
-     *
-     * @return {Promise} The promise that hides the currently displayed tab
      */
-    hideCurrentTab(_newTabType)
+    hideCurrentTab()
     {
-        if (this.currentTabType !== _newTabType)
+        if (this.currentTab !== null)
         {
-            if (this.currentTabType === "" || this.currentTab === null)
-            {
-                return new Promise(function(_resolve){
-                    _resolve("No tab hiding necessary (initial cycle).");
-                });
-            }
-            else
-            {
-                tabDisplayerLogger.debug("Hiding tab #" + this.currentTab.getDisplayId());
+            tabDisplayerLogger.debug("Hiding tab #" + this.currentTab.getDisplayId());
 
-                if (this.currentTabType === "static")
-                {
-                    return this.staticBrowserWindowManager.hideCurrentBrowserWindow();
-                }
-                else if (this.currentTabType === "reload")
-                {
-                    let self = this;
-                    let stopTabReloadLoop = new Promise(function(_resolve){
-                        if (self.tabReloadLoop.getIsActive())
-                        {
-                            tabDisplayerLogger.debug("Stopping reload loop of #" + self.tabReloadLoop.getReloadTab().getDisplayId());
-                            self.tabReloadLoop.stop().then(function(){
-                                _resolve("Tab reload loop stopped");
-                            })
-                        }
-                        else _resolve("Tab reload loop already stopped");
-                    });
-
-                    return new Promise(function(_resolve){
-                        stopTabReloadLoop.then(function(){
-                            self.reloadBrowserWindowManager.hideCurrentBrowserWindow().then(function(){
-                                _resolve("Reload tab hidden");
-                            });
-                        });
-                    });
-                }
-                else
-                {
-                    let currentTabType = this.currentTabType;
-                    return new Promise(function(_resolve, _reject){
-                        _reject("Invalid tab type '" + currentTabType + "'");
-                    })
-                }
-            }
+            if (this.tabReloadLoop && this.tabReloadLoop.getIsActive()) this.tabReloadLoop.stop();
+            this.browserWindowManager.hideCurrentBrowserWindow();
         }
-        else return new Promise(function(_resolve){
-            _resolve("No tab hiding necessary (same browser window manager).");
-        });
     }
 
     /**
      * Returns the browser window that is currently on top of the stack of browser windows.
      *
-     * @returns {Promise|null} The browser window or null if no browser window is on top
+     * @returns {BrowserWindow|null} The browser window or null if no browser window is on top
      */
     getCurrentTopBrowserWindow()
     {
-        if (this.currentTabType === "static") return this.staticBrowserWindowManager.getCurrentBrowserWindow();
-        else if (this.currentTabType === "reload") return this.reloadBrowserWindowManager.getCurrentBrowserWindow();
-        else return null;
+        return this.browserWindowManager.getCurrentBrowserWindow();
     }
 }
 
-
-/**
- * The tab type of the currently displayed tab ("static" or "reload").
- * This is used to determine the browser window manager that has to hide its currently displayed browser window.
- *
- * @type {string} currentTabType
- */
-TabDisplayer.currentTabType = "";
 
 /**
  * The tab that is currently displayed
@@ -403,18 +304,11 @@ TabDisplayer.tabList = null;
 TabDisplayer.tabReloadLoop = null;
 
 /**
- * The browser window manager for reloads
+ * The browser window manager
  *
- * @type {ReloadBrowserWindowManager} reloadBrowserWindowManager
+ * @type {BrowserWindowManager} browserWindowManager
  */
-TabDisplayer.reloadBrowserWindowManager = null;
-
-/**
- * The static browser window manager which is used to display static tabs
- *
- * @type {StaticBrowserWindowManager} staticBrowserWindowManager
- */
-TabDisplayer.staticBrowserWindowManager = null;
+TabDisplayer.browserWindowManager = null;
 
 
 module.exports = TabDisplayer;
