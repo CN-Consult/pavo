@@ -5,7 +5,7 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const WebClientEventProcessor = require(__dirname + "/WebClientEventProcessor");
+const WebClientEventProcessor = require(__dirname + "/../WebClientEventProcessor");
 
 /**
  * Handles the "reloadWindows" events.
@@ -31,7 +31,7 @@ class ReloadWindowsEventProcessor extends WebClientEventProcessor
      * @param {String} _eventName The name of the event
      * @param {object} _data The data that was sent with the event
      */
-    processEvent(_eventName, _data)
+    processWebClientEvent(_eventName, _data)
     {
         let windowIds = _data["windowIds"];
         if(! Array.isArray(windowIds)) this.socket.emit("error", { message: "haltTabSwitchLoops expects a list of window ids" });

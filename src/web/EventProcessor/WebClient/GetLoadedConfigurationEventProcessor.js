@@ -5,7 +5,7 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const WebClientEventProcessor = require(__dirname + "/WebClientEventProcessor");
+const WebClientEventProcessor = require(__dirname + "/../WebClientEventProcessor");
 
 /**
  * Handles the "getLoadedConfiguration" events.
@@ -31,7 +31,7 @@ class GetLoadedConfigurationEventProcessor extends WebClientEventProcessor
      * @param {String} _eventName The name of the event
      * @param {object} _data The data that was sent with the event
      */
-    processEvent(_eventName, _data)
+    processWebClientEvent(_eventName, _data)
     {
         this.socket.emit("loadedConfigurationStatus", this.pavoApi.getLoadedConfiguration());
     }

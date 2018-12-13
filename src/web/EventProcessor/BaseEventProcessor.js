@@ -36,11 +36,32 @@ class BaseEventProcessor
     /**
      * Processes one of the events for the specific event that this event processor listens to.
      *
+     * @param {Object} _object The object that emitted the event
      * @param {String} _eventName The name of the event
      * @param {*} _data The data that was sent with the event
      */
-    processEvent(_eventName, _data)
+    processEvent(_object, _eventName, _data)
     {
+    }
+
+
+    // Protected Methods
+
+    /**
+     * Initializes event listeners for a specified object.
+     * That object must be an EventEmitter.
+     *
+     * @param {Object} _object The object
+     * @param {string[]} _eventNames The event names to listen for
+     */
+    initializeEventListenersFor(_object, _eventNames)
+    {
+        let self = this;
+        _eventNames.forEach(function(_eventName){
+            _object.on(_eventName, function(_data){
+                self.processEvent(_object, _eventName, _data)
+            });
+        });
     }
 }
 

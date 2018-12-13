@@ -7,6 +7,7 @@
 
 const EventEmitter = require("events");
 const express = require("express");
+const glob = require("glob");
 const http = require("http");
 const minifyHTML = require("express-minify-html");
 const nunjucks = require("nunjucks");
@@ -14,18 +15,6 @@ const socket = require("socket.io");
 
 // Controllers
 const IndexController = require(__dirname + "/Controller/IndexController");
-
-// Event Processors
-const HaltTabSwitchLoopsEventProcessor = require(__dirname + "/EventProcessor/WebClient/HaltTabSwitchLoopsEventProcessor");
-const ResumeTabSwitchLoopsEventProcessor = require(__dirname + "/EventProcessor//WebClient/ResumeTabSwitchLoopsEventProcessor");
-const LoadURLEventProcessor = require(__dirname + "/EventProcessor/WebClient/LoadURLEventProcessor");
-const ReloadWindowsEventProcessor = require(__dirname + "/EventProcessor/WebClient/ReloadWindowsEventProcessor");
-const SwitchToPageEventProcessor = require(__dirname + "/EventProcessor/WebClient/SwitchToPageEventProcessor");
-const GetLoadedConfigurationEventProcessor = require(__dirname + "/EventProcessor/WebClient/GetLoadedConfigurationEventProcessor");
-const EditConfigurationEventProcessor = require(__dirname + "/EventProcessor/WebClient/EditConfigurationEventProcessor");
-
-const CustomUrlLoadEventProcessor = require(__dirname + "/EventProcessor/Pavo/CustomUrlLoadEventProcessor");
-const TabSwitchEventProcessor = require(__dirname + "/EventProcessor/Pavo/TabSwitchEventProcessor");
 
 /**
  * Handles creating of a web server which provides the web ui.
@@ -64,6 +53,9 @@ class WebServer extends EventEmitter
                 minifyJS:                  true
             }
         }));
+
+        this.pavoEventProcessors = [];
+        this.webClientEventProcessors = [];
     }
 
 
@@ -114,20 +106,21 @@ class WebServer extends EventEmitter
      */
     initializeEventProcessors(_pavoApi)
     {
-        this.webClientEventProcessors = {
-            "haltTabSwitchLoops": new HaltTabSwitchLoopsEventProcessor(this.socket, _pavoApi),
-            "resumeTabSwitchLoops": new ResumeTabSwitchLoopsEventProcessor(this.socket, _pavoApi),
-            "loadUrl": new LoadURLEventProcessor(this.socket, _pavoApi),
-            "reloadWindows": new ReloadWindowsEventProcessor(this.socket, _pavoApi),
-            "switchToPage": new SwitchToPageEventProcessor(this.socket, _pavoApi),
-            "getLoadedConfiguration": new GetLoadedConfigurationEventProcessor(this.socket, _pavoApi),
-            "editConfiguration": new EditConfigurationEventProcessor(this.socket, _pavoApi)
-        };
+        let self = this;
 
-        this.pavoEventProcessors = {
-            "tabSwitch": new TabSwitchEventProcessor(this.socket, _pavoApi),
-            "customUrlLoad": new CustomUrlLoadEventProcessor(this.socket, _pavoApi)
-        };
+        // Pavo Event processors
+        let pavoEventProcessorFilePaths = glob.sync(__dirname + "/EventProcessor/Pavo/*EventProcessor.js");
+        pavoEventProcessorFilePaths.forEach(function(_eventProcessorPath){
+            let eventProcessor = require(_eventProcessorPath);
+            self.pavoEventProcessors.push(new eventProcessor(self.socket, _pavoApi));
+        });
+
+        // Web client event processors
+        let webClientEventProcessorFilePaths = glob.sync(__dirname + "/EventProcessor/WebClient/*EventProcessor.js");
+        webClientEventProcessorFilePaths.forEach(function(_eventProcessorPath){
+            let eventProcessor = require(_eventProcessorPath);
+            self.webClientEventProcessors.push(new eventProcessor(self.socket, _pavoApi));
+        });
     }
 
     /**
@@ -159,25 +152,17 @@ class WebServer extends EventEmitter
     initializeEventListeners()
     {
         // Initialize the pavo event listeners once
-        for (let eventProcessorId in (this.pavoEventProcessors))
-        {
-            if (this.pavoEventProcessors.hasOwnProperty(eventProcessorId))
-            {
-                this.pavoEventProcessors[eventProcessorId].initializeEventListeners();
-            }
-        }
+        this.pavoEventProcessors.forEach(function(_pavoEventProcessor){
+            _pavoEventProcessor.initializeEventListeners();
+        });
 
         // Initialize the web client event listeners per connect
         let self = this;
         this.socket.on("connect", function(_socket){
 
-            for (let eventProcessorId in (self.webClientEventProcessors))
-            {
-                if (self.webClientEventProcessors.hasOwnProperty(eventProcessorId))
-                {
-                    self.webClientEventProcessors[eventProcessorId].initializeEventListeners(_socket);
-                }
-            }
+            self.webClientEventProcessors.forEach(function(_webClientEventProcessors){
+               _webClientEventProcessors.initializeEventListeners(_socket);
+            });
 
             _socket.on("disconnect", function(){
                 _socket.removeAllListeners();

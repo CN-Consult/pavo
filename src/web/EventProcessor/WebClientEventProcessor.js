@@ -5,7 +5,7 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const BaseEventProcessor = require(__dirname + "/../BaseEventProcessor");
+const BaseEventProcessor = require(__dirname + "/BaseEventProcessor");
 
 /**
  * Parent class for event processors.
@@ -36,21 +36,28 @@ class WebClientEventProcessor extends BaseEventProcessor
      */
     initializeEventListeners(_socket)
     {
-        let processEvent = this.processEvent.bind(this);
-        this.eventNames.forEach(function(_eventName){
-            _socket.on(_eventName, function(_data){
-                processEvent(_eventName, _data);
-            });
-        });
+        this.initializeEventListenersFor(_socket, this.eventNames);
     }
 
     /**
      * Processes one of the events for the specific event that this event processor listens to.
      *
+     * @param {Object} _object The object that emitted the event
      * @param {String} _eventName The name of the event
      * @param {object} _data The data that was sent with the event
      */
-    processEvent(_eventName, _data)
+    processEvent(_object, _eventName, _data)
+    {
+        this.processWebClientEvent(_eventName, _data);
+    }
+
+    /**
+     * Processes a web client event.
+     *
+     * @param {String} _eventName The name of the event
+     * @param {object} _data The data that was sent with the event
+     */
+    processWebClientEvent(_eventName, _data)
     {
     }
 }
