@@ -46,36 +46,43 @@ class WindowManager
     {
         windowManagerLogger.debug("Initializing WindowManager.");
 
-        let numberOfWindows = _windowsConfiguration.length;
-        let numberOfInitializedWindows = 0;
-        let windowListIndex = 0;
+        return this.initializeWindows(_windowsConfiguration);
+    }
 
+    /**
+     * Initializes the windows according to the window configuration.
+     * The windows are initialized one by one in order to lower the CPU stress.
+     * A nice side effect is that automatic logins are automatically applied to all windows that are initialized after the window with the initial login tab.
+     *
+     * @param {Object} _windowsConfiguration The window configuration
+     * @param {int} _currentWindowIndex The current window index (Default: 0)
+     *
+     * @returns {Promise} The promise that initializes the windows
+     */
+    initializeWindows(_windowsConfiguration, _currentWindowIndex = 0)
+    {
         let self = this;
         return new Promise(function(_resolve){
 
-            _windowsConfiguration.forEach(function(_windowConfiguration){
+            let window = new Window(_currentWindowIndex);
+            window.initialize(_windowsConfiguration[_currentWindowIndex]).then(function() {
 
-                // TODO: Initialize windows one by one instead of asynchronous (too lower CPU stress)
-                let window = new Window(windowListIndex);
-                window.initialize(_windowConfiguration).then(function(){
+                // Add the window to the list of windows
+                self.windows[window.getId()] = window;
 
-                    // Add the window to the list of windows
-                    self.windows[window.getId()] = window;
-
-                    numberOfInitializedWindows++;
-                    if (numberOfInitializedWindows === numberOfWindows)
-                    {
-                        // TODO: Check whether this timeout can be removed
-                        setTimeout(function(){
-                            self.reloadSecondaryLoginTabs().then(function(){
-                                windowManagerLogger.debug("WindowManager initialized.");
-                                _resolve("WindowManager initialized");
-                            });
-                        }, 1000);
-                    }
-                });
-
-                windowListIndex++;
+                if (_currentWindowIndex === _windowsConfiguration.length - 1)
+                {
+                    self.reloadSecondaryLoginTabs().then(function(){
+                        windowManagerLogger.debug("WindowManager initialized.");
+                        _resolve("WindowManager initialized");
+                    });
+                }
+                else
+                {
+                    self.initializeWindows(_windowsConfiguration, ++_currentWindowIndex).then(function(_message){
+                        _resolve(_message);
+                    });
+                }
             });
         });
     }

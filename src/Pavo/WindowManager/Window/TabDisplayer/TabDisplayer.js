@@ -238,22 +238,37 @@ class TabDisplayer extends EventEmitter
     {
         this.browserWindowManager = new BrowserWindowManager(_browserWindowConfiguration);
 
-        // Add all tabs to the browser window manager
-        let numberOfTabs = _tabList.getTabs().length;
+        return this.initializeTabs(_tabList);
+    }
+
+    /**
+     * Add all tabs to the browser window manager
+     * The tabs are initialized one by one in order to lower the CPU stress.
+     * A nice side effect is that automatic logins are automatically applied to all tabs that are initialized after the initial login tab.
+     *
+     * @param {TabList} _tabList The tab list
+     * @param {int} _currentTabIndex The current tab index (default: 0)
+     *
+     * @return {Promise} The promise that initializes the tabs
+     */
+    initializeTabs(_tabList, _currentTabIndex = 0)
+    {
+        let tabs = _tabList.getTabs();
+        let currentTab = tabs[_currentTabIndex];
 
         let self = this;
         return new Promise(function(_resolve){
-            _tabList.getTabs().forEach(function(_tab){
-                // TODO: Initialize tabs one by one instead of asynchronous (to lower CPU stress)
-                self.browserWindowManager.addTab(_tab).then(function(_numberOfTabBrowserWindows){
-                    if (_numberOfTabBrowserWindows === numberOfTabs)
-                    {
-                        _resolve("All static tabs initialized.");
-                    }
-                });
-            });
-        });
 
+            self.browserWindowManager.addTab(currentTab).then(function(){
+                if (_currentTabIndex === tabs.length - 1) _resolve("Tab initialization finished");
+                else
+                {
+                    self.initializeTabs(_tabList, ++_currentTabIndex).then(function(_message){
+                        _resolve(_message);
+                    });
+                }
+            });
+        })
     }
 
     /**

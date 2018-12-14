@@ -30,7 +30,7 @@ class LoadURLEventProcessor extends WebClientEventProcessor
      * Processes one of the events for the specific event that this event processor listens to.
      *
      * @param {String} _eventName The name of the event
-     * @param {object} _data The data that was sent with the event
+     * @param {*} _data The data that was sent with the event
      */
     processWebClientEvent(_eventName, _data)
     {
@@ -50,8 +50,6 @@ class LoadURLEventProcessor extends WebClientEventProcessor
 
             self.pavoApi.loadURLIntoWindow(_windowId, _data["url"]);
         });
-
-        // TODO: Tab must emit urlLoad event which must be passed to web clients
     }
 }
 

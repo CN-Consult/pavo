@@ -36,7 +36,7 @@ class BaseEventProcessor
     /**
      * Processes one of the events for the specific event that this event processor listens to.
      *
-     * @param {Object} _object The object that emitted the event
+     * @param {*} _object The object that emitted the event
      * @param {String} _eventName The name of the event
      * @param {*} _data The data that was sent with the event
      */

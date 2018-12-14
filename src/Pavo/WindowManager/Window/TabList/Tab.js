@@ -59,6 +59,7 @@ class Tab extends EventEmitter
         this.realBaseUrl = parsedUrl.protocol + "//" + parsedUrl.host + parsedUrl.pathname;
 
         // Auto login
+        // TODO: Remove this option
         if (_tabConfiguration.reloadAfterAppInit) this.reloadAfterAppInit = _tabConfiguration.reloadAfterAppInit;
         else this.reloadAfterAppInit = false;
 

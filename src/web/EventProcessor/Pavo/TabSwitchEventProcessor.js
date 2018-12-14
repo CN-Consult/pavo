@@ -28,11 +28,11 @@ class TabSwitchEventProcessor extends BaseEventProcessor
     /**
      * Processes one of the events for the specific event that this event processor listens to.
      *
-     * @param {Object} _object The object that emitted the event
+     * @param {TabSwitchLoop} _tabSwitchLoop The tab switch loop that emitted the event
      * @param {String} _eventName The name of the event
-     * @param {Tab} _data The tab to which the pavo app switched
+     * @param {Object} _data The tab to which the pavo app switched
      */
-    processEvent(_object, _eventName, _data)
+    processEvent(_tabSwitchLoop, _eventName, _data)
     {
         let statusUpdate = {
             type: _eventName,
