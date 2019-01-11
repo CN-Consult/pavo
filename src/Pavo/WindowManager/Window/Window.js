@@ -216,7 +216,10 @@ class Window
                 nodeIntegration: false,
 
                 // Sandbox mode improves the performance of browser windows
-                sandbox: true
+                sandbox: true,
+
+                // Setting the affinity will cause all BrowserWindow's to run in the same renderer process
+                affinity: "pavo"
             }
         };
 
