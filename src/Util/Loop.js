@@ -144,19 +144,7 @@ class Loop extends EventEmitter
         let onCycle = this.onCycle.bind(this);
         let self = this;
 
-        let waitForPreviousCycleFinish = new Promise(function(_resolve){
-            if (self.remainingCycleTime > 0)
-            {
-                self.nextCycleTimeoutStartTimeStamp = Date.now();
-                self.nextCycleTimeout = setInterval(function(){
-                    _resolve("Previous cycle finished");
-                }, self.remainingCycleTime);
-            }
-            else _resolve("No remaining cycle time for previous cycle");
-        });
-
-
-        waitForPreviousCycleFinish.then(function(){
+        this.waitForPreviousCycleFinish().then(function(){
 
             if (self.isActive)
             { // Loop was not stopped while waiting for previous cycle finish
@@ -254,6 +242,29 @@ class Loop extends EventEmitter
      */
     onLoopHalt()
     {
+    }
+
+
+    // Private Methods
+
+    /**
+     * Returns a promise that waits for the previous cycle's finish.
+     *
+     * @return {Promise} The promise that waits for the previous cycle's finish
+     */
+    waitForPreviousCycleFinish()
+    {
+        let self = this;
+        return new Promise(function(_resolve){
+            if (self.remainingCycleTime > 0)
+            {
+                self.nextCycleTimeoutStartTimeStamp = Date.now();
+                self.nextCycleTimeout = setInterval(function(){
+                    _resolve("Previous cycle finished");
+                }, self.remainingCycleTime);
+            }
+            else _resolve("No remaining cycle time for previous cycle");
+        });
     }
 }
 
