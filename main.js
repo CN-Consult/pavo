@@ -22,7 +22,12 @@ const log4js = require("log4js");
 // Configure the loggers
 log4js.configure({
     appenders: {
-        console: { type: "console" },
+
+        /*
+         * Must use stdout instead of console to avoid memory leaks
+         * @see https://github.com/log4js-node/log4js-node/issues/181
+         */
+        stdout: { type: "stdout" }
 
         // TODO: Let pavo create the log files (maybe reduce the log lines)
         /*
@@ -36,14 +41,14 @@ log4js.configure({
         */
     },
     categories: {
-        default: { appenders: [ "console" ], level: "debug" },
-        windowManager: { appenders: [ "console"/*, "windowManager"*/ ], level: "debug" },
-        window: { appenders: [ "console"/*, "window"*/ ], level: "debug"},
-        tabDisplayer: { appenders: [ "console"/*, "tabDisplayer"*/ ], level: "debug" },
-        tabReloadLoop: { appenders: [ "console"/*, "tabReloadLoop"*/ ], level: "debug" },
-        tab: { appenders: [ "console"/*, "tab"*/ ], level: "debug" },
-        autoLogin: { appenders: [ "console"/*, "autoLogin"*/ ], level: "debug" },
-        pavoApi: { appenders: ["console"/*, "pavoApi"*/ ], level: "debug" }
+        default: { appenders: [ "stdout" ], level: "debug" },
+        windowManager: { appenders: [ "stdout"/*, "windowManager"*/ ], level: "debug" },
+        window: { appenders: [ "stdout"/*, "window"*/ ], level: "debug"},
+        tabDisplayer: { appenders: [ "stdout"/*, "tabDisplayer"*/ ], level: "debug" },
+        tabReloadLoop: { appenders: [ "stdout"/*, "tabReloadLoop"*/ ], level: "debug" },
+        tab: { appenders: [ "stdout"/*, "tab"*/ ], level: "debug" },
+        autoLogin: { appenders: [ "stdout"/*, "autoLogin"*/ ], level: "debug" },
+        pavoApi: { appenders: ["stdout"/*, "pavoApi"*/ ], level: "debug" }
     }
 });
 
