@@ -13,6 +13,8 @@ const pavoApiLogger = require("log4js").getLogger("pavoApi");
 
 /**
  * Provides the api methods for the pavo app.
+ *
+ * @property {Pavo} parentPavo The parent pavo app which can be accessed with this PavoApi
  */
 class PavoApi
 {
@@ -254,14 +256,6 @@ class PavoApi
         }
     }
 }
-
-
-/**
- * The parent pavo app which can be accessed with this pavo api
- *
- * @type {Pavo} parentPavo
- */
-PavoApi.parentPavo = null;
 
 
 module.exports = PavoApi;

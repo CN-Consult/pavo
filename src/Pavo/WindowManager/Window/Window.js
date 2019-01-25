@@ -16,6 +16,13 @@ const windowLogger = require("log4js").getLogger("window");
 
 /**
  * Creates and stores the tabs and the configuration of a single window.
+ *
+ * @property {int} id The window id
+ * @property {int} displayId The id that will be displayed in the logs and in the user interface
+ * @property {Object} configuration The loaded window configuration
+ * @property {ObjectMerger} objectMerger The object merger
+ * @property {TabDisplayer} tabDisplayer The tab displayer
+ * @property {TabSwitchLoop} tabSwitchLoop The tab switch loop
  */
 class Window
 {
@@ -281,48 +288,6 @@ class Window
         return this.objectMerger.mergeObjects(this.configuration["pageDefaults"], _pageSpecificConfiguration, true);
     }
 }
-
-/**
- * The window id
- *
- * @type {int} id
- */
-Window.id = -1;
-
-/**
- * The id that will be displayed in the logs and in the user interface
- *
- * @type {int} displayId
- */
-Window.displayId = 0;
-
-/**
- * The loaded window configuration
- *
- * @type {Object} configuration
- */
-Window.configuration = null;
-
-/**
- * The object merger
- *
- * @type {ObjectMerger} objectMerger
- */
-Window.objectMerger = null;
-
-/**
- * The tab displayer
- *
- * @type {TabDisplayer} tabDisplayer
- */
-Window.tabDisplayer = null;
-
-/**
- * The tab switch loop
- *
- * @type {TabSwitchLoop} tabSwitchLoop
- */
-Window.tabSwitchLoop = null;
 
 
 module.exports = Window;

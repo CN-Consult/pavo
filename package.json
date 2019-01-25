@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron . --disable-renderer-backgrounding",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "generate-docs": "node_modules/.bin/jsdoc -c jsdoc.json"
   },
   "build": {
     "appId": "pavo",
@@ -18,8 +19,10 @@
   "author": "Yannick Lapp",
   "license": "MIT",
   "devDependencies": {
+    "docdash": "^1.0.2",
     "electron": "4.0.1",
-    "electron-builder": "^20.28.4"
+    "electron-builder": "^20.28.4",
+    "jsdoc": "^3.5.5"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.5.0",

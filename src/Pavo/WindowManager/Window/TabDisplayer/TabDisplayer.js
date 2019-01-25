@@ -13,6 +13,11 @@ const tabDisplayerLogger = require("log4js").getLogger("tabDisplayer");
 /**
  * Manages showing and hiding of tabs for a window.
  * This class can only show tabs from the tab list that it was initialized with.
+ *
+ * @property {Tab} currentTab The tab that is currently displayed
+ * @property {TabList} tabList The tab list
+ * @property {TabReloadLoop} tabReloadLoop The tab reload loop which is used to display reload tabs
+ * @property {BrowserWindowManager} browserWindowManager The browser window manager
  */
 class TabDisplayer extends EventEmitter
 {
@@ -295,35 +300,6 @@ class TabDisplayer extends EventEmitter
         return this.browserWindowManager.getCurrentBrowserWindow();
     }
 }
-
-
-/**
- * The tab that is currently displayed
- *
- * @type {Tab} currentTab
- */
-TabDisplayer.currentTab = null;
-
-/**
- * The tab list
- *
- * @type {TabList} tabList
- */
-TabDisplayer.tabList = null;
-
-/**
- * The tab reload loop which is used to display reload tabs
- *
- * @type {TabReloadLoop} tabReloadLoop
- */
-TabDisplayer.tabReloadLoop = null;
-
-/**
- * The browser window manager
- *
- * @type {BrowserWindowManager} browserWindowManager
- */
-TabDisplayer.browserWindowManager = null;
 
 
 module.exports = TabDisplayer;

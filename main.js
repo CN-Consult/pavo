@@ -1,5 +1,5 @@
 /**
- * @file
+ * @file Starts the pavo app and a web server that provides an easy way to control the pavo app
  * @version 0.1
  * @copyright 2018 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>

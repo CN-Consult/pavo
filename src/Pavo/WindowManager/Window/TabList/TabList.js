@@ -7,6 +7,9 @@
 
 /**
  * Stores a list of tabs and provides methods to get/set the entries.
+ *
+ * @property {Tab[]} tabs The list of tabs
+ * @property {int} currentTabIndex The current tab index that is updated by the getNextTab() method
  */
 class TabList
 {
@@ -157,21 +160,6 @@ class TabList
         else return null;
     }
 }
-
-
-/**
- * The list of tabs.
- *
- * @type {Tab[]} tabs
- */
-TabList.tabs = null;
-
-/**
- * The current tab index that is updated by the getNextTab() method
- *
- * @type {int} currentTabIndex
- */
-TabList.currentTabIndex = 0;
 
 
 module.exports = TabList;

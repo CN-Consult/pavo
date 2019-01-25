@@ -9,6 +9,10 @@ const { BrowserWindow } = require("electron");
 
 /**
  * Manages the browser windows for the tabs.
+ *
+ * @property {Object} browserWindowConfiguration The browser window configuration
+ * @property {Tab} currentTab The currently shown tab
+ * @property {BrowserWindow[]} tabBrowserWindows The list of tab browser windows (Each tab gets its own browser window)
  */
 class BrowserWindowManager
 {
@@ -176,29 +180,6 @@ class BrowserWindowManager
         return this.getBrowserWindowForTab(this.currentTab);
     }
 }
-
-
-/**
- * The browser window configuration
- *
- * @type {Object} browserWindowConfiguration
- */
-BrowserWindowManager.browserWindowConfiguration = null;
-
-/**
- * The currently shown tab
- *
- * @type {Tab} currentTab
- */
-BrowserWindowManager.currentTab = null;
-
-/**
- * The list of tab browser windows.
- * Each tab gets its own browser window.
- *
- * @type {BrowserWindow[]} tabBrowserWindows
- */
-BrowserWindowManager.tabBrowserWindows = null;
 
 
 module.exports = BrowserWindowManager;

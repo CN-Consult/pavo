@@ -14,6 +14,21 @@ const tabLogger = require("log4js").getLogger("tab");
 
 /**
  * Stores information about a single tab and provides methods to attach/detach the tab to a browser window.
+ *
+ * @property {int} id The id of the tab
+ * @property {Window} parentWindow The parent window
+ * @property {string} displayId The display id of the tab that is used in log messages and in the user interface
+ * @property {String[]} cssFiles The custom css files for this tab
+ * @property {String[]} jsFiles The custom javascript files for this tab
+ * @property {string} realBaseUrl The base url of the tab that is used to determine whether the page was redirected after an automatic login
+ * @property {string} url The url whose content is displayed in this tab
+ * @property {string} name The name of this tab that is used to display the tab in the overview of the web interface
+ * @property {int} displayTime The time for which this tab is displayed before the next tab is shown in milliseconds
+ * @property {int} reloadTime The time interval in which this tab is reloaded in milliseconds
+ * @property {boolean} reloadAfterAppInit Defines whether this tab must be reloaded after the app was initialized
+ * @property {boolean} isLoginDone Defines whether the automatic login for this tab was successfully performed in one browser window
+ * @property {AutomaticLogin} automaticLogin The automatic login which is used to perform a auto login if one is defined in the config file
+ * @property {function} domReadyHandler The dom ready handler which is called when a attached browser window emits "dom-ready" (necessary to detach the event listener)
  */
 class Tab extends EventEmitter
 {
@@ -371,106 +386,6 @@ class Tab extends EventEmitter
         });
     }
 }
-
-/**
- * The id of the tab
- *
- * @var {int} id
- */
-Tab.id = -1;
-
-/**
- * The parent window
- *
- * @var {Window} parentWindow
- */
-Tab.parentWindow = null;
-
-/**
- * The display id of the tab
- * This is used in log messages and in the user interface
- *
- * @var {string} displayId
- */
-Tab.displayId = "";
-
-/**
- * The custom css files for this tab
- *
- * @var {String[]} cssFiles
- */
-Tab.cssFiles = null;
-
-/**
- * The custom javascript files for this tab
- *
- * @var {String[]} jsFiles
- */
-Tab.jsFiles = null;
-
-/**
- * The base url of the tab
- * This is used to determine whether the page was redirected after an automatic login
- *
- * @var {string} realBaseUrl
- */
-Tab.realBaseUrl = "";
-
-/**
- * The url whose content is displayed in this tab
- *
- * @var {string} url
- */
-Tab.url = "";
-
-/**
- * Stores the name of this tab
- * This is used to display the tab in the overview of the web interface
- *
- * @var {string} name
- */
-Tab.name = "";
-
-/**
- * The time for which this tab is displayed before the next tab is shown in milliseconds
- *
- * @var {int} displayTime
- */
-Tab.displayTime = 0;
-
-/**
- * The time interval in which this tab is reloaded in milliseconds
- *
- * @var {int} reloadTime
- */
-Tab.reloadTime = 0;
-
-/**
- * Defines whether this tab must be reloaded after the app was initialized
- *
- * @var {boolean} reloadAfterAppInit
- */
-Tab.reloadAfterAppInit = false;
-
-/**
- * Defines whether the automatic login for this tab was successfully performed in one browser window
- *
- * @var {boolean} isLoginDone
- */
-Tab.isLoginDone = false;
-
-/**
- * The automatic login which is used to perform a auto login if one is defined in the config file
- *
- * @var {AutomaticLogin} automaticLogin
- */
-Tab.automaticLogin = null;
-
-/**
- * The dom ready handler which is called when a attached browser window emits "dom-ready"
- * This is saved in a attribute in order to be able to detach the event listener from the browser window
- */
-Tab.domReadyHandler = null;
 
 
 module.exports = Tab;

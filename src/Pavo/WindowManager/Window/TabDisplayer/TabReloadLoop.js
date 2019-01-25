@@ -10,6 +10,9 @@ const tabReloadLoopLogger = require("log4js").getLogger("tabReloadLoop");
 
 /**
  * Handles reloading of tabs.
+ *
+ * @property {BrowserWindowManager} browserWindowManager The browser window manager
+ * @property {Tab} reloadTab The tab that is currently being displayed and reloaded
  */
 class TabReloadLoop extends Loop
 {
@@ -106,21 +109,6 @@ class TabReloadLoop extends Loop
         });
     }
 }
-
-
-/**
- * The browser window manager
- *
- * @type {BrowserWindowManager} browserWindowManager
- */
-TabReloadLoop.browserWindowManager = null;
-
-/**
- * The tab that is currently being displayed and reloaded
- *
- * @type {Tab} reloadTab
- */
-TabReloadLoop.reloadTab = null;
 
 
 module.exports = TabReloadLoop;

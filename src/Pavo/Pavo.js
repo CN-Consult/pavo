@@ -9,6 +9,10 @@ const WindowManager = require(__dirname + "/WindowManager/WindowManager");
 
 /**
  * Wrapper class for the Pavo app.
+ *
+ * @property {boolean} isInitialized Defines whether the initialize() method was completed at least once
+ * @property {Object} loadedConfiguration The currently loaded pavo configuration
+ * @property {WindowManager} windowManager The window manager that creates and manages the pavo windows based on the loaded configuration
  */
 class Pavo
 {
@@ -81,28 +85,6 @@ class Pavo
         });
     }
 }
-
-
-/**
- * Defines whether the initialize() method was completed at least once
- *
- * @type {boolean} isInitialized
- */
-Pavo.isInitialized = false;
-
-/**
- * The currently loaded pavo configuration
- *
- * @type {Object} loadedConfiguration
- */
-Pavo.loadedConfiguration = null;
-
-/**
- * The window manager that creates and manages the pavo windows based on the loaded configuration
- *
- * @type {WindowManager} windowManager
- */
-Pavo.windowManager = null;
 
 
 module.exports = Pavo;

@@ -9,6 +9,8 @@ const Loop = require(__dirname + "/../../../Util/Loop");
 
 /**
  * Handles a tab switch loop for a window.
+ *
+ * @property {TabDisplayer} tabDisplayer The tab displayer
  */
 class TabSwitchLoop extends Loop
 {
@@ -152,14 +154,6 @@ class TabSwitchLoop extends Loop
         });
     }
 }
-
-
-/**
- * The tab displayer
- *
- * @type {TabDisplayer} tabDisplayer
- */
-TabSwitchLoop.tabDisplayer = null;
 
 
 module.exports = TabSwitchLoop;

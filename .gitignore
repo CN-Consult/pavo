@@ -2,4 +2,5 @@
 .vagrant
 node_modules
 config
+docs
 log

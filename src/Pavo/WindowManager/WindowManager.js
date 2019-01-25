@@ -10,6 +10,8 @@ const windowManagerLogger = require("log4js").getLogger("windowManager");
 
 /**
  * Creates and stores the pavo windows.
+ *
+ * @property {Window[]} windows The list of windows
  */
 class WindowManager
 {
@@ -45,46 +47,7 @@ class WindowManager
     initialize(_windowsConfiguration)
     {
         windowManagerLogger.debug("Initializing WindowManager.");
-
         return this.initializeWindows(_windowsConfiguration);
-    }
-
-    /**
-     * Initializes the windows according to the window configuration.
-     * The windows are initialized one by one in order to lower the CPU stress.
-     * A nice side effect is that automatic logins are automatically applied to all windows that are initialized after the window with the initial login tab.
-     *
-     * @param {Object} _windowsConfiguration The window configuration
-     * @param {int} _currentWindowIndex The current window index (Default: 0)
-     *
-     * @returns {Promise} The promise that initializes the windows
-     */
-    initializeWindows(_windowsConfiguration, _currentWindowIndex = 0)
-    {
-        let self = this;
-        return new Promise(function(_resolve){
-
-            let window = new Window(_currentWindowIndex);
-            window.initialize(_windowsConfiguration[_currentWindowIndex]).then(function() {
-
-                // Add the window to the list of windows
-                self.windows[window.getId()] = window;
-
-                if (_currentWindowIndex === _windowsConfiguration.length - 1)
-                {
-                    self.reloadSecondaryLoginTabs().then(function(){
-                        windowManagerLogger.debug("WindowManager initialized.");
-                        _resolve("WindowManager initialized");
-                    });
-                }
-                else
-                {
-                    self.initializeWindows(_windowsConfiguration, ++_currentWindowIndex).then(function(_message){
-                        _resolve(_message);
-                    });
-                }
-            });
-        });
     }
 
     /**
@@ -100,7 +63,6 @@ class WindowManager
 
         return new Promise(function(_resolve){
             self.windows.forEach(
-                /** @param {Window} _window */
                 function(_window){
                     _window.reloadSecondaryLoginTabs().then(function(){
 
@@ -144,15 +106,49 @@ class WindowManager
             );
         });
     }
+
+
+    // Private Methods
+
+    /**
+     * Initializes the windows according to the window configuration.
+     * The windows are initialized one by one in order to lower the CPU stress.
+     * A nice side effect is that automatic logins are automatically applied to all windows that are initialized after the window with the initial login tab.
+     *
+     * @param {Object} _windowsConfiguration The window configuration
+     * @param {int} _currentWindowIndex The current window index (Default: 0)
+     *
+     * @returns {Promise} The promise that initializes the windows
+     * @private
+     */
+    initializeWindows(_windowsConfiguration, _currentWindowIndex = 0)
+    {
+        let self = this;
+        return new Promise(function(_resolve){
+
+            let window = new Window(_currentWindowIndex);
+            window.initialize(_windowsConfiguration[_currentWindowIndex]).then(function() {
+
+                // Add the window to the list of windows
+                self.windows[window.getId()] = window;
+
+                if (_currentWindowIndex === _windowsConfiguration.length - 1)
+                {
+                    self.reloadSecondaryLoginTabs().then(function(){
+                        windowManagerLogger.debug("WindowManager initialized.");
+                        _resolve("WindowManager initialized");
+                    });
+                }
+                else
+                {
+                    self.initializeWindows(_windowsConfiguration, ++_currentWindowIndex).then(function(_message){
+                        _resolve(_message);
+                    });
+                }
+            });
+        });
+    }
 }
-
-
-/**
- * The list of windows
- *
- * @type {Window[]} windows
- */
-WindowManager.windows = null;
 
 
 module.exports = WindowManager;

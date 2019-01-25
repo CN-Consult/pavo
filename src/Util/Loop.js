@@ -9,6 +9,12 @@ const EventEmitter = require("events");
 
 /**
  * Base class for loops.
+ *
+ * @property {boolean} isActive Defines whether this Loop is currently active
+ * @property {Timeout} nextCycleTimeout Stores the timeout that will execute the next cycle
+ * @property {int} nextCycleTimeoutStartTimeStamp The time when the next cycle timeout was initialized (used to calculate the remaining cycle time on loop halt)
+ * @property {int} cycleTime Stores the time in milliseconds that must pass before the next cycle is called
+ * @property {int} remainingCycleTime The remaining cycle time in milliseconds (used on loop continue)
  */
 class Loop extends EventEmitter
 {
@@ -267,46 +273,6 @@ class Loop extends EventEmitter
         });
     }
 }
-
-
-/**
- * Defines whether this loop is currently active
- *
- * @type {boolean} isActive
- */
-Loop.isActive = false;
-
-/**
- * Stores the timeout that will execute the next cycle
- * This is a interval because timeouts can not be cleared properly
- *
- * @type {Object} nextTabTimeout
- */
-Loop.nextCycleTimeout = null;
-
-/**
- * Stores when the next cycle timeout was initialized.
- * This value is the return value of Date.now().
- * This is necessary to calculate the remaining cycle time after a loop halt.
- *
- * @type {int} nextTabTimeoutStart
- */
-Loop.nextCycleTimeoutStartTimeStamp = 0;
-
-/**
- * Stores the time in milliseconds that must pass before the next cycle is called.
- *
- * @type {int} cycleTime
- */
-Loop.cycleTime = 0;
-
-/**
- * Stores the remaining cycle time in milliseconds
- * This is used when the loop is continued after a loop halt
- *
- * @type {int} remainingTabShowTime
- */
-Loop.remainingCycleTime = 0;
 
 
 module.exports = Loop;
