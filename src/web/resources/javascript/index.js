@@ -7,7 +7,13 @@
 
 let pageFetchedTimeStamp = Date.now();
 
+/**
+ * The JSONEditor dialog
+ *
+ * @type JsonEditorDialog jsonEditorDialog
+ */
 let jsonEditorDialog;
+
 let timeProgressBars = [];
 let socket = io.connect("http://" + location.host);
 

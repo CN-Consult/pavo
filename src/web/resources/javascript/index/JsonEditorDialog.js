@@ -1,7 +1,6 @@
 /**
- * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -24,7 +23,7 @@ class JsonEditorDialog
     /**
      * Initializes the dialogs and the json editor.
      *
-     * @param {jQuery} _jsonEditorDialogElement The element for the json editor dialog (must contain a "json-editor" sub div
+     * @param {jQuery} _jsonEditorDialogElement The element for the json editor dialog (must contain a "json-editor" div)
      * @param {jQuery} _confirmDialogElement The element for the "Really save?" dialog
      */
     init(_jsonEditorDialogElement, _confirmDialogElement)
@@ -38,7 +37,7 @@ class JsonEditorDialog
 
 
     /**
-     * Loads a specified json object into the json editor and show the json editor dialog.
+     * Loads a specified json object into the json editor and shows the json editor dialog.
      *
      * @param {object} _jsonObject The json object
      */
@@ -140,7 +139,7 @@ class JsonEditorDialog
                 {
                     schema: _json,
                     show_errors: "always",
-                    theme: "bootstrap3",
+                    theme: "bootstrap4",
                     iconlib: "fontawesome4"
                 }
             );
@@ -149,9 +148,40 @@ class JsonEditorDialog
 
     /**
      * Saves the edited json to the config file.
+     *
+     * @emits The "editConfiguration" event
      */
     saveEditedJson()
     {
         this.socket.emit("editConfiguration", this.editor.getValue());
     }
 }
+
+
+/**
+ * The socket which is necessary to save the edited configuration
+ *
+ * @type {Socket} socket
+ */
+JsonEditorDialog.socket = null;
+
+/**
+ * The element for the json editor dialog (must contain a "json-editor" sub div)
+ *
+ * @type {jQuery} jsonEditorDialogElement
+ */
+JsonEditorDialog.jsonEditorDialogElement = null;
+
+/**
+ * The element for the "Really save?" dialog
+ *
+ * @type {jQuery} confirmDialogElement
+ */
+JsonEditorDialog.confirmDialogElement = null;
+
+/**
+ * The JSON Editor
+ *
+ * @type {JSONEditor} editor
+ */
+JsonEditorDialog.editor = null;
