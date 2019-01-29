@@ -1,7 +1,7 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -91,33 +91,33 @@ section#windows-status div.window-configuration:not(:last-child) {
     margin-right: 10px;
 }
 
-/* Tab List */
-table.tab-list tr.defined-page td.tab-name {
+/* Page List */
+table.page-list tr.defined-page td.page-name {
     color: #00E;
 }
-table.tab-list tr.defined-page:hover {
+table.page-list tr.defined-page:hover {
     cursor: pointer;
 }
-table.tab-list td {
+table.page-list td {
     padding: 1px 0;
 }
-table.tab-list td:not(:last-child) {
+table.page-list td:not(:last-child) {
     /* Using padding as margin because the margin attribute has no effect for table cells */
     padding-right: 20px;
 }
-table.tab-list tr.active td.tab-type p {
+table.page-list tr.active td.page-type p {
     background-color: #FA0;
 }
-table.tab-list tr#custom-page {
+table.page-list tr#custom-page {
     display: none;
 }
-table.tab-list tr.active#custom-page {
+table.page-list tr.active#custom-page {
     display: table-row;
 }
-table.tab-list tr.active#custom-page td.tab-type p {
+table.page-list tr.active#custom-page td.page-type p {
     background-color: #AAA;
 }
-table.tab-list td.tab-type p {
+table.page-list td.page-type p {
     border: 1px solid black;
     border-radius: 100%;
     width: 30px;

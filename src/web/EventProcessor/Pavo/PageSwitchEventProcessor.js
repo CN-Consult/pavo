@@ -8,9 +8,9 @@
 const BaseEventProcessor = require(__dirname + "/../BaseEventProcessor");
 
 /**
- * Handles the "customUrlLoad" events of the page displayer.
+ * Handles the "show", "halt" and "continue" events of the page switch loop.
  */
-class CustomUrlLoadEventProcessor extends BaseEventProcessor
+class PageSwitchEventProcessor extends BaseEventProcessor
 {
     /**
      * Initializes the event listeners.
@@ -22,7 +22,7 @@ class CustomUrlLoadEventProcessor extends BaseEventProcessor
 
             /** @param {Window} _window */
             function(_window){
-                self.initializeEventListenersFor(_window.getPageSwitchLoop(), [ "customUrlLoad" ]);
+                self.initializeEventListenersFor(_window.getPageSwitchLoop(), [ "show", "halt", "continue" ]);
             }
         );
     }
@@ -32,18 +32,21 @@ class CustomUrlLoadEventProcessor extends BaseEventProcessor
      *
      * @param {PageSwitchLoop} _pageSwitchLoop The page switch loop that emitted the event
      * @param {String} _eventName The name of the event
-     * @param {Page} _data The url and the page into which the url was loaded
+     * @param {Object} _data The page to which the pavo app switched
      */
     processEvent(_pageSwitchLoop, _eventName, _data)
     {
         let statusUpdate = {
+            type: _eventName,
             window: _data["page"].getParentWindow().getId(),
-            url: _data["url"]
+            page: _data["page"].getId(),
+            remainingDisplayMilliseconds: _data["remainingDisplayTime"],
+            pageSwitchLoopIsActive: _data["isActive"]
         };
 
-        this.socket.emit("customUrlLoad", statusUpdate);
+        this.socket.emit("pageSwitchLoopStatusUpdate", statusUpdate);
     }
 }
 
 
-module.exports = CustomUrlLoadEventProcessor;
+module.exports = PageSwitchEventProcessor;

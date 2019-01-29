@@ -1,7 +1,7 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -22,13 +22,13 @@ $(document).ready(function() {
     jsonEditorDialog = new JsonEditorDialog(socket);
     jsonEditorDialog.init($("div#dialog-json-editor"), $("div#dialog-confirm-configuration-save"));
 
-    $("button#toggle-tab-switch-loop").on("click", toggleTabSwitchLoop);
+    $("button#toggle-page-switch-loop").on("click", togglePageSwitchLoop);
     $("form#load-url-form").on("submit", loadUrlIntoWindow);
     $("button#reload-window").on("click", reloadWindows);
-    $("div.window-configuration table.tab-list tr.defined-page").on("click", switchToPage);
+    $("div.window-configuration table.page-list tr.defined-page").on("click", switchToPage);
     $("div#pavo-overview section#pavo-configuration-edit button#edit-pavo-config").on("click", showJsonEditor);
 
-    socket.on("tabSwitchLoopStatusUpdate", handleTabSwitchLoopStatusUpdate);
+    socket.on("pageSwitchLoopStatusUpdate", handlePageSwitchLoopStatusUpdate);
     socket.on("customUrlLoad", handleCustomUrlLoad);
 
     initializeTimeProgressBars();
@@ -43,7 +43,7 @@ $(window).bind("beforeunload", function(){
 
 
 /**
- * Initializes the time progress bars behind the currently displayed tabs per window.
+ * Initializes the time progress bars behind the currently displayed pages per window.
  */
 function initializeTimeProgressBars()
 {
@@ -52,31 +52,31 @@ function initializeTimeProgressBars()
     windowConfigurationDivs.each(function(_windowConfigurationDivIndex){
 
         let windowConfiguration = $(windowConfigurationDivs[_windowConfigurationDivIndex]);
-        let tabList = $(windowConfiguration).find("table.tab-list");
+        let pageList = $(windowConfiguration).find("table.page-list");
 
-        let currentTab = tabList.data("current-tab");
-        let remainingDisplayTime = tabList.data("remaining-display-time") - (Date.now() - pageFetchedTimeStamp);
-        let isTabSwitchLoopActive = windowConfiguration.data("tab-switch-loop-active");
+        let currentPage = pageList.data("current-page");
+        let remainingDisplayTime = pageList.data("remaining-display-time") - (Date.now() - pageFetchedTimeStamp);
+        let isPageSwitchLoopActive = windowConfiguration.data("page-switch-loop-active");
 
         timeProgressBars[_windowConfigurationDivIndex] = new TimeProgressBar();
-        timeProgressBars[_windowConfigurationDivIndex].initialize(tabList.find("td.remaining-time"), remainingDisplayTime);
+        timeProgressBars[_windowConfigurationDivIndex].initialize(pageList.find("td.remaining-time"), remainingDisplayTime);
 
-        showRemainingTime(_windowConfigurationDivIndex, currentTab, remainingDisplayTime, isTabSwitchLoopActive);
+        showRemainingTime(_windowConfigurationDivIndex, currentPage, remainingDisplayTime, isPageSwitchLoopActive);
     });
 }
 
-// Tab switch loop update and control
+// Page switch loop update and control
 
 /**
- * Halts or resumes the tab switch loops of the event targets window.
+ * Halts or resumes the page switch loops of the event targets window.
  */
-function toggleTabSwitchLoop(_event)
+function togglePageSwitchLoop(_event)
 {
-    if ($(_event.target).closest("div.window-configuration").data("tab-switch-loop-active") === true)
+    if ($(_event.target).closest("div.window-configuration").data("page-switch-loop-active") === true)
     {
-        socket.emit("haltTabSwitchLoops", { windowIds: [ getWindowIdFromElement(_event.target) ] });
+        socket.emit("haltPageSwitchLoops", { windowIds: [ getWindowIdFromElement(_event.target) ] });
     }
-    else socket.emit("resumeTabSwitchLoops", { windowIds: [ getWindowIdFromElement(_event.target) ] });
+    else socket.emit("resumePageSwitchLoops", { windowIds: [ getWindowIdFromElement(_event.target) ] });
 }
 
 /**
@@ -112,135 +112,135 @@ function switchToPage(_event)
      * The event listener is on each table row but the table row cannot be clicked without clicking a table field.
      * Therefore the event target is always a table field of the target table row
      */
-    let clickedTabTableRow = $(_event.target).closest("tr");
+    let clickedPageTableRow = $(_event.target).closest("tr");
 
     // Closest div container is the div container for the whole window configuration which has a data attribute with the window id
-    let tableRowParentWindow = $(clickedTabTableRow).closest("div");
+    let tableRowParentWindow = $(clickedPageTableRow).closest("div");
 
     let windowId = $(tableRowParentWindow).data("window");
-    let tabId = $(clickedTabTableRow).data("page");
+    let pageId = $(clickedPageTableRow).data("page");
 
-    socket.emit("switchToPage", { windowId: windowId, tabId: tabId });
+    socket.emit("switchToPage", { windowId: windowId, pageId: pageId });
 }
 
 /**
- * Handles "tabSwitchLoopStatusUpdate" events.
+ * Handles "pageSwitchLoopStatusUpdate" events.
  *
  * @param {object} _statusUpdate The status update (contains the update type and the list of affected windows)
  */
-function handleTabSwitchLoopStatusUpdate(_statusUpdate)
+function handlePageSwitchLoopStatusUpdate(_statusUpdate)
 {
-    handleTabSwitch(_statusUpdate);
+    handlePageSwitch(_statusUpdate);
 
-    let startCountdown = _statusUpdate["tabSwitchLoopIsActive"];
+    let startCountdown = _statusUpdate["pageSwitchLoopIsActive"];
 
     if (_statusUpdate["type"] === "halt" || _statusUpdate["type"] === "continue")
     { // halt or continue
 
-        let resumeTabSwitchLoop = _statusUpdate["type"] === "continue";
+        let resumePageSwitchLoop = _statusUpdate["type"] === "continue";
         let windowConfigurationDiv = $("div#window-configuration-" + _statusUpdate["window"]);
 
         // Update the time progress bar
         let timeProgressBar = timeProgressBars[_statusUpdate["window"]];
-        if (timeProgressBar) startCountdown = resumeTabSwitchLoop;
+        if (timeProgressBar) startCountdown = resumePageSwitchLoop;
 
-        // Update tab switch loop active data
-        $(windowConfigurationDiv).data("tab-switch-loop-active", resumeTabSwitchLoop);
+        // Update page switch loop active data
+        $(windowConfigurationDiv).data("page-switch-loop-active", resumePageSwitchLoop);
 
-        // Update the tab switch loop status circle
+        // Update the page switch loop status circle
         let circleClassName;
-        if (resumeTabSwitchLoop) circleClassName = "greenCircle";
+        if (resumePageSwitchLoop) circleClassName = "greenCircle";
         else circleClassName = "redCircle";
 
         // Update button functionality
-        let toggleTabSwitchLoopButton = $(windowConfigurationDiv).find(" table.components button#toggle-tab-switch-loop");
+        let togglePageSwitchLoopButton = $(windowConfigurationDiv).find(" table.components button#toggle-page-switch-loop");
 
-        toggleTabSwitchLoopButton.empty();
-        if (resumeTabSwitchLoop) toggleTabSwitchLoopButton.append($("<i class=\"fas fa-pause\"></i>"));
-        else toggleTabSwitchLoopButton.append($("<i class=\"fas fa-play\"></i>"));
+        togglePageSwitchLoopButton.empty();
+        if (resumePageSwitchLoop) togglePageSwitchLoopButton.append($("<i class=\"fas fa-pause\"></i>"));
+        else togglePageSwitchLoopButton.append($("<i class=\"fas fa-play\"></i>"));
 
-        setTabSwitchLoopCircleClass(windowConfigurationDiv, circleClassName);
+        setPageSwitchLoopCircleClass(windowConfigurationDiv, circleClassName);
     }
 
-    showRemainingTime(_statusUpdate["window"], _statusUpdate["tab"], _statusUpdate["remainingDisplayMilliseconds"], startCountdown);
+    showRemainingTime(_statusUpdate["window"], _statusUpdate["page"], _statusUpdate["remainingDisplayMilliseconds"], startCountdown);
 }
 
 /**
- * Sets the circle class name for the tab switch loop state circle.
+ * Sets the circle class name for the page switch loop state circle.
  *
- * @param {jQuery} _windowConfigurationDiv The window configuration div container in which the tab switch loop circle will be changed
+ * @param {jQuery} _windowConfigurationDiv The window configuration div container in which the page switch loop circle will be changed
  * @param {string} _circleClassName The new circle class name
  */
-function setTabSwitchLoopCircleClass(_windowConfigurationDiv, _circleClassName)
+function setPageSwitchLoopCircleClass(_windowConfigurationDiv, _circleClassName)
 {
-    let tabSwitchLoopStateCircle =$(_windowConfigurationDiv).find(" p#tabSwitchLoopState");
+    let pageSwitchLoopStateCircle =$(_windowConfigurationDiv).find(" p#pageSwitchLoopState");
 
-    if (! tabSwitchLoopStateCircle.hasClass(_circleClassName))
+    if (! pageSwitchLoopStateCircle.hasClass(_circleClassName))
     {
         // Remove all classes from the element except for "circle" and the new circle type class name
-        let classNames = tabSwitchLoopStateCircle.attr("class").split(/\s+/);
+        let classNames = pageSwitchLoopStateCircle.attr("class").split(/\s+/);
         classNames.forEach(function(_className){
-            if (_className !== "circle" && _className !== _circleClassName) tabSwitchLoopStateCircle.removeClass(_className);
+            if (_className !== "circle" && _className !== _circleClassName) pageSwitchLoopStateCircle.removeClass(_className);
         });
 
-        tabSwitchLoopStateCircle.addClass(_circleClassName);
+        pageSwitchLoopStateCircle.addClass(_circleClassName);
     }
 }
 
 /**
- * Handles a "tabSwitch" event.
+ * Handles a "pageSwitch" event.
  *
- * @param {object} _tabSwitchData The tab switch data (contains the window whose tab switched and the tab id that switched)
+ * @param {object} _pageSwitchData The page switch data (contains the window whose page switched and the page id that switched)
  */
-function handleTabSwitch(_tabSwitchData)
+function handlePageSwitch(_pageSwitchData)
 {
-    let tabId = _tabSwitchData["tab"];
-    let windowId = _tabSwitchData["window"];
+    let pageId = _pageSwitchData["page"];
+    let windowId = _pageSwitchData["window"];
 
-    setActiveTab(windowId, tabId);
+    setActivePage(windowId, pageId);
 }
 
 /**
- * Sets the "active" class for a specific tab in a specific window and removes the "active" class from all other tabs.
+ * Sets the "active" class for a specific page in a specific window and removes the "active" class from all other pages.
  *
  * @param {int} _windowId The window id
- * @param {int} _tabId The tab id
+ * @param {int} _pageId The page id
  */
-function setActiveTab(_windowId, _tabId)
+function setActivePage(_windowId, _pageId)
 {
-    let tabTableRows = $("div#window-configuration-" + _windowId + " table.tab-list tr");
+    let pageTableRows = $("div#window-configuration-" + _windowId + " table.page-list tr");
 
-    tabTableRows.each(function(_tabTableRowIndex){
+    pageTableRows.each(function(_pageTableRowIndex){
 
-        let tabTableRow = tabTableRows[_tabTableRowIndex];
+        let pageTableRow = pageTableRows[_pageTableRowIndex];
 
-        // Highlight the displayed tab
-        if ($(tabTableRow).hasClass("active"))
+        // Highlight the displayed page
+        if ($(pageTableRow).hasClass("active"))
         {
-            // Remove the active class from all tabs that are not the currently displayed tab
-            if (_tabTableRowIndex !== _tabId) $(tabTableRow).removeClass("active");
+            // Remove the active class from all pages that are not the currently displayed page
+            if (_pageTableRowIndex !== _pageId) $(pageTableRow).removeClass("active");
         }
         else
         {
-            // Add the active class to the currently displayed tab
-            if (_tabTableRowIndex === _tabId) $(tabTableRow).addClass("active");
+            // Add the active class to the currently displayed page
+            if (_pageTableRowIndex === _pageId) $(pageTableRow).addClass("active");
         }
     });
 }
 
 /**
- * Shows the remaining time for which a tab will be displayed as a countdown behind the tab url.
+ * Shows the remaining time for which a page will be displayed as a countdown behind the page url.
  *
  * @param {int} _windowId The id of the window
- * @param {int} _tabId The id of the tab
- * @param {int} _numberOfRemainingMilliseconds The number of remaining milliseconds for which the tab will be displayed
+ * @param {int} _pageId The id of the page
+ * @param {int} _numberOfRemainingMilliseconds The number of remaining milliseconds for which the page will be displayed
  * @param {boolean} _startCountdown Defines whether the countdown will be started after initializing
  */
-function showRemainingTime(_windowId, _tabId, _numberOfRemainingMilliseconds, _startCountdown)
+function showRemainingTime(_windowId, _pageId, _numberOfRemainingMilliseconds, _startCountdown)
 {
     timeProgressBars[_windowId].stop();
 
-    timeProgressBars[_windowId].initialize($("div#window-configuration-" + _windowId + " table.tab-list tr#tab-" + _tabId + " td.remaining-time"), _numberOfRemainingMilliseconds);
+    timeProgressBars[_windowId].initialize($("div#window-configuration-" + _windowId + " table.page-list tr#page-" + _pageId + " td.remaining-time"), _numberOfRemainingMilliseconds);
 
     if (_startCountdown) timeProgressBars[_windowId].start();
     else timeProgressBars[_windowId].initializeCountDownElement();
@@ -270,15 +270,15 @@ function getWindowIdFromElement(_node)
 }
 
 /**
- * Removes the "active" class from all table rows of the tab list and shows the custom page table row.
+ * Removes the "active" class from all table rows of the page list and shows the custom page table row.
  *
  * @param {object} _data The data which contains the window id and the url that was loaded
  */
 function handleCustomUrlLoad(_data)
 {
-    // Remove "active" class from all tabs
-    let windowTabs = $("div#window-configuration-" + _data["window"] + " table.tab-list tr");
-    windowTabs.removeClass("active");
+    // Remove "active" class from all pages
+    let windowPages = $("div#window-configuration-" + _data["window"] + " table.page-list tr");
+    windowPages.removeClass("active");
 
     showCustomUrl(_data["window"], _data["url"]);
 }
@@ -291,11 +291,11 @@ function handleCustomUrlLoad(_data)
  */
 function showCustomUrl(_windowId, _url)
 {
-    let tabListTable = $("div#window-configuration-" + _windowId + " table.tab-list");
-    let customUrlTableRow = $(tabListTable).find("tr#custom-page");
+    let pageListTable = $("div#window-configuration-" + _windowId + " table.page-list");
+    let customUrlTableRow = $(pageListTable).find("tr#custom-page");
 
-    customUrlTableRow.find("td.tab-name").text(_url);
+    customUrlTableRow.find("td.page-name").text(_url);
 
-    let lastTableRowNumber = $(tabListTable).find("tr").length - 1;
-    setActiveTab(_windowId, lastTableRowNumber);
+    let lastTableRowNumber = $(pageListTable).find("tr").length - 1;
+    setActivePage(_windowId, lastTableRowNumber);
 }

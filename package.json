@@ -4,7 +4,7 @@
   "description": "Displays different websites on dashboards",
   "main": "main.js",
   "scripts": {
-    "start": "electron . --disable-renderer-backgrounding",
+    "start": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "generate-docs": "node_modules/.bin/jsdoc -c jsdoc.json"

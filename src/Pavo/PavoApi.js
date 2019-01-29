@@ -1,7 +1,7 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -13,6 +13,7 @@ const pavoApiLogger = require("log4js").getLogger("pavoApi");
 
 /**
  * Provides the api methods for the pavo app.
+ * TODO: Split into sub classes
  *
  * @property {Pavo} parentPavo The parent pavo app which can be accessed with this PavoApi
  */
@@ -30,13 +31,24 @@ class PavoApi
 
 
     /**
+     * Returns whether the pavo API is ready to be used.
+     *
+     * @return {boolean} True if the pavo API is ready to be used, false otherwise
+     */
+    isReady()
+    {
+        return (this.parentPavo.getIsInitialized());
+    }
+
+
+    /**
      * Returns the windows of the parent pavo.
      *
      * @return {string|Window[]} The error message if the pavo app is not initialized yet or the list of windows
      */
     getWindows()
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
 
         return this.parentPavo.getWindowManager().getWindows();
     }
@@ -48,7 +60,7 @@ class PavoApi
      */
     getLoadedConfiguration()
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
 
         return this.parentPavo.getLoadedConfiguration();
     }
@@ -61,6 +73,8 @@ class PavoApi
      */
     setConfiguration(_configuration)
     {
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
+
         // TODO: Check that configuration is different from current one
         let configBaseDirectory = app.getPath("home") + "/config";
         let configBackupDirectory = configBaseDirectory + "/config-backups";
@@ -88,13 +102,13 @@ class PavoApi
 
     /**
      * Returns the status for each window of the pavo app.
-     * This includes the configuration and whether the tab switch loop is active
+     * This includes the configuration and whether the page switch loop is active
      *
      * @return {string|Promise} The error message if the pavo app is not initialized yet or the promise that returns the window status object
      */
     getWindowsStatus()
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
 
         let windowsStatus = [];
 
@@ -119,18 +133,18 @@ class PavoApi
                     {
                         windowsStatus[windowId] = {};
                         windowsStatus[windowId].configuration = windowConfigurations[windowId];
-                        windowsStatus[windowId].isTabSwitchLoopActive = windows[windowId].getTabSwitchLoop().getIsActive();
+                        windowsStatus[windowId].isPageSwitchLoopActive = windows[windowId].getPageSwitchLoop().getIsActive();
 
-                        let currentTab = windows[windowId].getTabSwitchLoop().getTabDisplayer().getCurrentTab();
-                        if (currentTab)
+                        let currentPage = windows[windowId].getPageSwitchLoop().getPageDisplayer().getCurrentPage();
+                        if (currentPage)
                         {
-                            windowsStatus[windowId].currentTab = currentTab.getId();
-                            windowsStatus[windowId].remainingDisplayTime = windows[windowId].getTabSwitchLoop().calculateRemainingCycleTime();
+                            windowsStatus[windowId].currentPage = currentPage.getId();
+                            windowsStatus[windowId].remainingDisplayTime = windows[windowId].getPageSwitchLoop().calculateRemainingCycleTime();
                         }
 
-                        if (windows[windowId].getTabSwitchLoop().getTabDisplayer().getCustomPageTab())
+                        if (windows[windowId].getPageSwitchLoop().getPageDisplayer().getCustomUrlPage())
                         {
-                            let topBrowserWindow = windows[windowId].getTabSwitchLoop().getTabDisplayer().getCurrentTopBrowserWindow();
+                            let topBrowserWindow = windows[windowId].getPageSwitchLoop().getPageDisplayer().getCurrentTopBrowserWindow();
                             windowsStatus[windowId].customURL = topBrowserWindow.webContents.getURL();
                         }
 
@@ -144,51 +158,51 @@ class PavoApi
     }
 
     /**
-     * Halts the tab switch loop for a specified window.
+     * Halts the page switch loop for a specified window.
      *
      * @param {int} _windowId The window id
      *
      * @return {string|null} The error message if the pavo app is not initialized yet or null
      */
-    haltTabSwitchLoopOfWindow(_windowId)
+    haltPageSwitchLoopOfWindow(_windowId)
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
 
-        pavoApiLogger.info("Received tab switch loop halt request for window " + _windowId);
+        pavoApiLogger.info("Received page switch loop halt request for window " + _windowId);
 
         let window = this.getWindows()[_windowId];
         if (window)
         {
-            let tabSwitchLoop = window.getTabSwitchLoop();
-            if (tabSwitchLoop.getIsActive())
+            let pageSwitchLoop = window.getPageSwitchLoop();
+            if (pageSwitchLoop.getIsActive())
             {
-                pavoApiLogger.info("Halting tab switch loop for window #" + window.getDisplayId());
-                tabSwitchLoop.halt();
+                pavoApiLogger.info("Halting page switch loop for window #" + window.getDisplayId());
+                pageSwitchLoop.halt();
             }
         }
     }
 
     /**
-     * Resumes the tab switch loop for a specified window.
+     * Resumes the page switch loop for a specified window.
      *
      * @param {int} _windowId The window id
      *
      * @return {string|null} The error message if the pavo app is not initialized yet or null
      */
-    resumeTabSwitchLoopOfWindow(_windowId)
+    resumePageSwitchLoopOfWindow(_windowId)
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
 
-        pavoApiLogger.info("Received tab switch loop resume request for window " + _windowId);
+        pavoApiLogger.info("Received page switch loop resume request for window " + _windowId);
 
         let window = this.getWindows()[_windowId];
         if (window)
         {
-            let tabSwitchLoop = window.getTabSwitchLoop();
-            if (! tabSwitchLoop.getIsActive())
+            let pageSwitchLoop = window.getPageSwitchLoop();
+            if (! pageSwitchLoop.getIsActive())
             {
-                pavoApiLogger.info("Resuming tab switch loop for window #" + window.getDisplayId());
-                tabSwitchLoop.continue();
+                pavoApiLogger.info("Resuming page switch loop for window #" + window.getDisplayId());
+                pageSwitchLoop.continue();
             }
         }
     }
@@ -203,15 +217,15 @@ class PavoApi
      */
     loadURLIntoWindow(_windowId, _url)
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
 
         pavoApiLogger.info("Received url load request for window " + _windowId + " with target url \"" + _url + "\"");
 
         let window = this.getWindows()[_windowId];
         if (window)
         {
-            this.haltTabSwitchLoopOfWindow(_windowId);
-            window.getTabDisplayer().displayCustomURL(_url);
+            this.haltPageSwitchLoopOfWindow(_windowId);
+            window.getPageDisplayer().displayCustomURL(_url);
         }
     }
 
@@ -224,35 +238,35 @@ class PavoApi
      */
     reloadWindow(_windowId)
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
 
         pavoApiLogger.info("Received reload window request for window " + _windowId);
 
         let window = this.getWindows()[_windowId];
         if (window)
         {
-            window.getTabDisplayer().reloadCurrentPage();
+            window.getPageDisplayer().reloadCurrentPage();
         }
     }
 
     /**
-     * Switches the tab switch loop inside a specified window to a specific tab id.
+     * Switches the page switch loop inside a specified window to a specific page id.
      *
      * @param {int} _windowId The window id
-     * @param {int} _tabId The tab id
+     * @param {int} _pageId The page id
      *
      * @return {string|null} The error message if the pavo app is not initialized yet or null
      */
-    switchToPageInWindow(_windowId, _tabId)
+    switchToPageInWindow(_windowId, _pageId)
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        if (! this.isReady()) return "ERROR: Pavo app not initialized yet";
 
-        pavoApiLogger.info("Received switch to page window request for window " + _windowId + " with target page " + _tabId);
+        pavoApiLogger.info("Received switch to page window request for window " + _windowId + " with target page " + _pageId);
 
         let window = this.getWindows()[_windowId];
         if (window)
         {
-            window.getTabSwitchLoop().switchToPage(_tabId);
+            window.getPageSwitchLoop().switchToPage(_pageId);
         }
     }
 }

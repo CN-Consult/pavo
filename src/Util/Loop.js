@@ -1,7 +1,7 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -98,7 +98,7 @@ class Loop extends EventEmitter
 
             self.onLoopStart();
             self.continue(true).then(function(){
-                _resolve("Tab switch loop started");
+                _resolve("Loop started");
             });
         });
     }
@@ -207,6 +207,7 @@ class Loop extends EventEmitter
 
     /**
      * Method that will be called on loop start.
+     * @protected
      */
     onLoopStart()
     {
@@ -216,6 +217,7 @@ class Loop extends EventEmitter
      * Method that will be called on loop continue.
      *
      * @return {Promise} The promise that executes child class specific code
+     * @protected
      */
     onLoopContinue()
     {
@@ -228,6 +230,7 @@ class Loop extends EventEmitter
      * Method that will be called on each cycle.
      *
      * @return {Promise} The promise that executes child class specific code
+     * @protected
      */
     onCycle()
     {
@@ -238,6 +241,7 @@ class Loop extends EventEmitter
 
     /**
      * Method that will be called on loop stop.
+     * @protected
      */
     onLoopStop()
     {
@@ -245,6 +249,7 @@ class Loop extends EventEmitter
 
     /**
      * Method that will be called on loop halt.
+     * @protected
      */
     onLoopHalt()
     {

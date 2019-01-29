@@ -1,7 +1,7 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -34,7 +34,7 @@ class ReloadWindowsEventProcessor extends WebClientEventProcessor
     processWebClientEvent(_eventName, _data)
     {
         let windowIds = _data["windowIds"];
-        if(! Array.isArray(windowIds)) this.socket.emit("error", { message: "haltTabSwitchLoops expects a list of window ids" });
+        if(! Array.isArray(windowIds)) this.socket.emit("error", { message: "haltPageSwitchLoops expects a list of window ids" });
 
         // Convert window ids to integers
         windowIds = windowIds.map(function(_windowIdString){

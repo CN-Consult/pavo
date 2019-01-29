@@ -1,28 +1,27 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const electron = require("electron");
 const os = require("os");
 const ObjectMerger = require(__dirname + "/../../../Util/ObjectMerger");
-const Tab = require(__dirname + "/TabList/Tab");
-const TabList = require(__dirname + "/TabList/TabList");
-const TabDisplayer = require(__dirname + "/TabDisplayer/TabDisplayer");
-const TabSwitchLoop = require(__dirname + "/TabSwitchLoop");
+const Page = require(__dirname + "/PageList/Page");
+const PageList = require(__dirname + "/PageList/PageList");
+const PageDisplayer = require(__dirname + "/PageDisplayer/PageDisplayer");
+const PageSwitchLoop = require(__dirname + "/PageSwitchLoop");
 const windowLogger = require("log4js").getLogger("window");
 
 /**
- * Creates and stores the tabs and the configuration of a single window.
+ * Creates and stores the pages and the configuration of a single window.
  *
  * @property {int} id The window id
  * @property {int} displayId The id that will be displayed in the logs and in the user interface
  * @property {Object} configuration The loaded window configuration
  * @property {ObjectMerger} objectMerger The object merger
- * @property {TabDisplayer} tabDisplayer The tab displayer
- * @property {TabSwitchLoop} tabSwitchLoop The tab switch loop
+ * @property {PageDisplayer} pageDisplayer The page displayer
+ * @property {PageSwitchLoop} pageSwitchLoop The page switch loop
  */
 class Window
 {
@@ -36,8 +35,8 @@ class Window
         this.id = _id;
         this.displayId = _id + 1;
         this.objectMerger = new ObjectMerger();
-        this.tabDisplayer = new TabDisplayer();
-        this.tabSwitchLoop = new TabSwitchLoop(this.tabDisplayer);
+        this.pageDisplayer = new PageDisplayer();
+        this.pageSwitchLoop = new PageSwitchLoop(this.pageDisplayer);
     }
 
 
@@ -64,30 +63,30 @@ class Window
     }
 
     /**
-     * Returns the tab manager.
+     * Returns the page displayer.
      *
-     * @return {TabDisplayer} The tab displayer
+     * @return {PageDisplayer} The page displayer
      */
-    getTabDisplayer()
+    getPageDisplayer()
     {
-        return this.tabDisplayer;
+        return this.pageDisplayer;
     }
 
     /**
-     * Returns the tab switch loop
+     * Returns the page switch loop
      *
-     * @return {TabSwitchLoop} The tab switch loop
+     * @return {PageSwitchLoop} The page switch loop
      */
-    getTabSwitchLoop()
+    getPageSwitchLoop()
     {
-        return this.tabSwitchLoop;
+        return this.pageSwitchLoop;
     }
 
 
     // Public Methods
 
     /**
-     * Initializes the tabs for the currently loaded window configuration.
+     * Initializes the pages for the currently loaded window configuration.
      *
      * @param {Object} _windowConfiguration The window configuration
      */
@@ -100,13 +99,12 @@ class Window
         // Generate the browser window configuration
         let browserWindowConfiguration = this.getBrowserWindowConfiguration();
 
-        // Initialize the tabs
+        // Initialize the pages
         let self = this;
         return new Promise(function(_resolve){
-            self.initializeTabs(browserWindowConfiguration).then(function(_tabList){
-
-                self.tabDisplayer.initialize(browserWindowConfiguration, _tabList).then(function(){
-                    self.tabSwitchLoop.initialize(self.tabDisplayer);
+            self.initializePages(browserWindowConfiguration).then(function(_pageList){
+                self.pageDisplayer.initialize(browserWindowConfiguration, _pageList).then(function(){
+                    self.pageSwitchLoop.initialize(self.pageDisplayer);
                     windowLogger.debug("Window #" + self.displayId + " initialized.");
                     _resolve("Window initialized");
                 });
@@ -115,29 +113,29 @@ class Window
     }
 
     /**
-     * Reloads the tabs that need a login that was already done in another tab.
+     * Reloads the pages that are configured to be reloaded after app initialization.
      *
-     * @return {Promise} The promise that reloads the tabs that need a login that was already done in another tab
+     * @return {Promise} The promise that reloads the pages that are configured to be reloaded after app initialization
      */
-    reloadSecondaryLoginTabs()
+    reloadPagesAfterAppInitialization()
     {
         let self = this;
-        let reloadAfterAppInitTabs = this.tabDisplayer.getTabList().getReloadAfterAppInitTabs();
-        let numberOfReloadAfterAppInitTabs = reloadAfterAppInitTabs.length;
-        let numberOfReloadedTabs = 0;
+        let reloadAfterAppInitPages = this.pageDisplayer.getPageList().getReloadAfterAppInitPages();
+        let numberOfReloadAfterAppInitPages = reloadAfterAppInitPages.length;
+        let numberOfReloadedPages = 0;
 
         return new Promise(function(_resolve){
 
-            if (numberOfReloadAfterAppInitTabs === 0) _resolve("No secondary tabs to reload.");
+            if (numberOfReloadAfterAppInitPages === 0) _resolve("No pages to reload after app initialization.");
             else
             {
-                reloadAfterAppInitTabs.forEach(function(_tab){
+                reloadAfterAppInitPages.forEach(function(_page){
 
-                    self.tabDisplayer.reloadTab(_tab).then(function(){
-                        numberOfReloadedTabs++;
-                        if (numberOfReloadedTabs === numberOfReloadAfterAppInitTabs)
+                    self.pageDisplayer.reloadPage(_page).then(function(){
+                        numberOfReloadedPages++;
+                        if (numberOfReloadedPages === numberOfReloadAfterAppInitPages)
                         {
-                            _resolve("Secondary tabs reloaded.");
+                            _resolve("Pages reloaded after app initialization.");
                         }
                     });
                 });
@@ -146,52 +144,48 @@ class Window
     }
 
     /**
-     * Starts the tab switch loop.
+     * Starts the page switch loop.
      *
-     * @returns {Promise} The promise that starts the tab switch loop
+     * @returns {Promise} The promise that starts the page switch loop
      */
-    startTabSwitchLoop()
+    startPageSwitchLoop()
     {
-        return this.tabSwitchLoop.start();
+        return this.pageSwitchLoop.start();
     }
 
 
     // Private Methods
 
     /**
-     * Initializes the tabs based on the window configuration.
+     * Initializes the pages based on the window configuration.
      *
-     * @param {Object} _browserWindowConfiguration The browser window configuration for each tab
+     * @param {Object} _browserWindowConfiguration The browser window configuration for each page
      *
-     * @returns {Promise} The promise that initializes the tabs
+     * @returns {Promise} The promise that initializes the pages
+     * @private
      */
-    initializeTabs(_browserWindowConfiguration)
+    initializePages(_browserWindowConfiguration)
     {
-        let numberOfTabs = this.configuration.pages.length;
-        let tabListIndex = 0;
-        let tabList = new TabList();
+        let numberOfPages = this.configuration.pages.length;
+        let pageList = new PageList();
 
         let self = this;
         return new Promise(function(_resolve){
-
             self.configuration.pages.forEach(function(_pageSpecificConfiguration){
-
                 let pageConfiguration = self.getPageConfiguration(_pageSpecificConfiguration);
-                let tab = new Tab(self, pageConfiguration, tabListIndex);
+                let page = new Page(self, pageConfiguration, pageList.getCurrentPageIndex() + 1);
 
-                tabList.addTab(tab);
-
-                if (tabListIndex === numberOfTabs - 1) _resolve(tabList);
-                else tabListIndex++;
+                pageList.addPage(page);
+                if (pageList.getCurrentPageIndex() === numberOfPages - 1) _resolve(pageList);
             });
         });
     }
 
     /**
-     * Creates and returns the browser window configuration for this window.
-     * This is done based on the configuration attributes content.
+     * Creates and returns the browser window configuration for this window based on the window configuration.
      *
      * @return {Object} The browser window configuration
+     * @private
      */
     getBrowserWindowConfiguration()
     {
@@ -211,7 +205,6 @@ class Window
             resizable: false,
 
             // Set the background color
-            //TODO: remove this?
             backgroundColor: "#000",
 
             webPreferences: {
@@ -219,7 +212,7 @@ class Window
                 // The browser windows don't need to be able to open the dev tools
                 devTools: false,
 
-                // Disable node integration for the browser windows because the tabs don't need access to node APIs
+                // Disable node integration for the browser windows because the pages don't need access to node APIs
                 nodeIntegration: false,
 
                 // Sandbox mode improves the performance of browser windows
@@ -237,8 +230,10 @@ class Window
             {
                 if (! this.configuration.position.y) this.configuration.position.y = 0;
 
+                let { screen } = require("electron");
+
                 // Find the display that contains the start coordinate
-                let display = electron.screen.getDisplayNearestPoint({
+                let display = screen.getDisplayNearestPoint({
                     x: this.configuration.position.x,
                     y: this.configuration.position.y
                 });
@@ -276,11 +271,12 @@ class Window
 
     /**
      * Creates and returns the page configuration.
-     * This is done by merging the page specific and the default page configuration which is loaded from the configuration attributes content.
+     * This is done by merging the page specific and the default page configuration which is loaded from the window configuration.
      *
      * @param {Object} _pageSpecificConfiguration The page specific configuration
      *
      * @returns {Object} The page configuration
+     * @private
      */
     getPageConfiguration(_pageSpecificConfiguration)
     {

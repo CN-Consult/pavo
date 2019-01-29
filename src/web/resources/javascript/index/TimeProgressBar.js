@@ -1,12 +1,12 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
 /**
- * Shows the remaining display time of a tab.
+ * Shows the remaining display time of a page.
  */
 class TimeProgressBar
 {
@@ -98,7 +98,7 @@ class TimeProgressBar
     }
 
     /**
-     * Halts the tab switch loop.
+     * Halts the page switch loop.
      */
     halt()
     {
@@ -106,7 +106,7 @@ class TimeProgressBar
     }
 
     /**
-     * Resumes the tab switch loop after a halt.
+     * Resumes the page switch loop after a halt.
      */
     continue()
     {

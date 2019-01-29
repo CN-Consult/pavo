@@ -6,7 +6,7 @@
  #}
 
 {#
- # Creates the window configuration divs with brief information (position and tab urls).
+ # Creates the window configuration divs with brief information (position and page urls).
  #
  # @param int _windowIndex The window index in the list of windows
  # @param Object _window The window configuration
@@ -14,7 +14,7 @@
 {% macro generateWindowStatusDiv(_windowIndex, _windowStatus) %}
     <div class="window-configuration whiteRoundedRectangle" id="window-configuration-{{ _windowIndex }}"
          data-window="{{ _windowIndex }}"
-         data-tab-switch-loop-active="{{ _windowStatus.isTabSwitchLoopActive }}">
+         data-page-switch-loop-active="{{ _windowStatus.isPageSwitchLoopActive }}">
 
         <h3>Fenster {{ _windowIndex + 1 }}</h3>
 
@@ -36,19 +36,19 @@
 
         <hr>
 
-        <h4>Tabs</h4>
-        <table class="tab-list"
-               data-current-tab="{{ _windowStatus.currentTab }}"
+        <h4>Seiten</h4>
+        <table class="page-list"
+               data-current-page="{{ _windowStatus.currentPage }}"
                data-remaining-display-time="{{ _windowStatus.remainingDisplayTime }}">
             {% set pageDefaults = _windowStatus.configuration.pageDefaults %}
             {% for pageIndex in range(0, _windowStatus.configuration.pages.length) %}
                 {% set page = _windowStatus.configuration.pages[pageIndex] %}
-                <tr class="defined-page {% if (_windowStatus.currentTab === pageIndex and not _windowStatus.customURL) %}active{% endif %}"
-                        id="tab-{{ pageIndex }}"
+                <tr class="defined-page {% if (_windowStatus.currentPage === pageIndex and not _windowStatus.customURL) %}active{% endif %}"
+                        id="page-{{ pageIndex }}"
                         data-page="{{ pageIndex }}">
 
                     {# Page type (S = Static, R = Reload) #}
-                    <td class="tab-type">
+                    <td class="page-type">
                       {# If page or pageDefaults reloadTime is set and greater than 0 #}
                         {% if (page.reloadTime is defined and page.reloadTime != 0) or
                               (page.reloadTime is not defined and pageDefaults.reloadTime is defined and pageDefaults.reloadTime != 0) %}
@@ -59,7 +59,7 @@
                             <p>S</p>
                         {% endif %}
                     </td>
-                    <td class="tab-name" data-toggle="tooltip" title="Umschalten auf {{ page.url }}">
+                    <td class="page-name" data-toggle="tooltip" title="Umschalten auf {{ page.url }}">
                         {% if page.name %}{{ page.name }}{% else %}{{ page.url }}{% endif %}
                     </td>
                     <td class="remaining-time"></td>
@@ -69,10 +69,10 @@
             <tr id="custom-page" class="custom-page {% if _windowStatus.customURL %}active{% endif %}">
 
                 {# Page type (C = Custom) #}
-                <td class="tab-type">
+                <td class="page-type">
                     <p>C</p>
                 </td>
-                <td colspan="2" class="tab-name">{% if _windowStatus.customURL %}{{ _windowStatus.customURL }}{% endif %}</td>
+                <td colspan="2" class="page-name">{% if _windowStatus.customURL %}{{ _windowStatus.customURL }}{% endif %}</td>
             </tr>
         </table>
 
@@ -82,15 +82,15 @@
         <h4>Komponenten</h4>
         <table class="components">
             <tr>
-                <td>Tab wechseln</td>
+                <td>Seite wechseln</td>
                 <td>
-                    <p id="tabSwitchLoopState"
-                       class="circle {% if _windowStatus.isTabSwitchLoopActive %}greenCircle{% else %}redCircle{% endif %}">
+                    <p id="pageSwitchLoopState"
+                       class="circle {% if _windowStatus.isPageSwitchLoopActive %}greenCircle{% else %}redCircle{% endif %}">
                     </p>
                 </td>
                 <td>
-                    <button class="btn btn-primary" id="toggle-tab-switch-loop">
-                        {%  if _windowStatus.isTabSwitchLoopActive %}
+                    <button class="btn btn-primary" id="toggle-page-switch-loop">
+                        {%  if _windowStatus.isPageSwitchLoopActive %}
                             <i class="fas fa-pause"></i>
                         {% else %}
                             <i class="fas fa-play"></i>

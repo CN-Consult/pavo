@@ -1,7 +1,7 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -9,10 +9,20 @@ let url = require("url");
 const autoLoginLogger = require("log4js").getLogger("autoLogin");
 
 /**
- * Automatic login for tabs.
+ * Automatic login for pages.
  * This currently only works for pages where the complete login form is shown on one page and the page is automatically redirected to the target page.
  *
  * TODO: Abstract class for AutomaticLogins and sub classes for "single page", "wait for password field", "reload for password field"
+ *
+ * @property {String} loginUrl The URL to the login page
+ * @property {String} form The form CSS selector
+ * @property {String} nameField The name field CSS selector relative from the form
+ * @property {String} passwordField The password field CSS selector relative from the form
+ * @property {bool} redirectsToMainUrl Defines whether a successful login will redirect the page to the main URL of the parent page
+ * @property {int} reloadTimeout The time to wait for a page reload in before assuming that the login failed in milliseconds
+ * @property {Page} parentPage The parent page
+ * @property {int} The current number of login attempts
+ * @property {int} The maximum number of login attempts before returning that the login was not possible
  */
 class AutomaticLogin
 {
@@ -20,9 +30,9 @@ class AutomaticLogin
      * AutomaticLogin constructor.
      *
      * @param {Object} _autoLoginConfiguration The auto login configuration
-     * @param {Tab} _parentTab The parent tab
+     * @param {Page} _parentPage The parent page
      */
-    constructor(_autoLoginConfiguration, _parentTab)
+    constructor(_autoLoginConfiguration, _parentPage)
     {
         this.loginUrl = _autoLoginConfiguration.loginUrl;
         this.form = _autoLoginConfiguration.form;
@@ -34,7 +44,7 @@ class AutomaticLogin
         if (_autoLoginConfiguration.reloadTimeout) this.reloadTimeout = _autoLoginConfiguration.reloadTimeout;
         else this.reloadTimeout = 3000;
 
-        this.parentTab = _parentTab;
+        this.parentPage = _parentPage;
 
         this.numberOfTries = 0;
         this.maximumNumberOfTries = 3;
@@ -66,7 +76,7 @@ class AutomaticLogin
                         let parsedUrl = url.parse(_browserWindow.webContents.getURL());
                         let currentBaseUrl = parsedUrl.protocol + "//" + parsedUrl.host + parsedUrl.pathname;
 
-                        if (self.redirectsToMainUrl && self.parentTab.realBaseUrl !== currentBaseUrl)
+                        if (self.redirectsToMainUrl && self.parentPage.getBaseURL() !== currentBaseUrl)
                         { // Something went wrong
 
                             if (self.numberOfTries <= self.maximumNumberOfTries)
@@ -166,13 +176,13 @@ class AutomaticLogin
         let loginJavascriptString = "";
 
         // Set the name
-        loginJavascriptString += this.getElementFetchString(this.form.selector + " " + this.nameField.selector) + ".value = \"" + this.nameField.value + "\";";
+        loginJavascriptString += AutomaticLogin.getElementFetchString(this.form.selector + " " + this.nameField.selector) + ".value = \"" + this.nameField.value + "\";";
 
         // Set the password
-        loginJavascriptString += this.getElementFetchString(this.form.selector + " " + this.passwordField.selector) + ".value = \"" + this.passwordField.value + "\";";
+        loginJavascriptString += AutomaticLogin.getElementFetchString(this.form.selector + " " + this.passwordField.selector) + ".value = \"" + this.passwordField.value + "\";";
 
         // Submit the form
-        loginJavascriptString += this.getElementFetchString(this.form.selector) + ".submit()";
+        loginJavascriptString += AutomaticLogin.getElementFetchString(this.form.selector) + ".submit()";
 
         return loginJavascriptString;
     }
@@ -184,7 +194,7 @@ class AutomaticLogin
      *
      * @return {string} The javascript call to get a element by css selector
      */
-    getElementFetchString(_selector)
+    static getElementFetchString(_selector)
     {
         return "document.querySelector(\"" + _selector + "\")";
     }

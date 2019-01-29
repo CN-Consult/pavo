@@ -1,22 +1,14 @@
 /**
  * @file Starts the pavo app and a web server that provides an easy way to control the pavo app
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
 const { app } = require("electron");
 const JsonLoader = require(__dirname + "/src/Util/JsonLoader");
 const Pavo = require(__dirname + "/src/Pavo/Pavo");
-const PavoApi = require(__dirname + "/src/Pavo/PavoApi");
 const WebServer = require(__dirname + "/src/web/WebServer");
-
-let jsonLoader = new JsonLoader();
-let pavo = new Pavo();
-let pavoApi = new PavoApi(pavo);
-let webServer = new WebServer();
-
-
 const log4js = require("log4js");
 
 // Configure the loggers
@@ -33,9 +25,9 @@ log4js.configure({
         /*
         windowManager: { type: "file", filename: __dirname + "/../../log/WindowManager.log" },
         window: { type: "file", filename: __dirname + "/../../log/Window.log" },
-        tabDisplayer: { type: "file", filename: __dirname + "/../../log/TabDisplayer.log" },
-        tabReloadLoop: { type: "file", filename: __dirname + "/../../log/TabReloadLoop.log" },
-        tab: { type: "file", filename: __dirname + "/../../log/Tab.log" },
+        pageDisplayer: { type: "file", filename: __dirname + "/../../log/PageDisplayer.log" },
+        pageReloadLoop: { type: "file", filename: __dirname + "/../../log/PageReloadLoop.log" },
+        page: { type: "file", filename: __dirname + "/../../log/Page.log" },
         autoLogin: { type: "file", filename: __dirname + "/../../log/AutoLogin.log" },
         pavoApi: { type: "file", filename: __dirname + "/../../log/PavoApi.log" }
         */
@@ -44,24 +36,29 @@ log4js.configure({
         default: { appenders: [ "stdout" ], level: "debug" },
         windowManager: { appenders: [ "stdout"/*, "windowManager"*/ ], level: "debug" },
         window: { appenders: [ "stdout"/*, "window"*/ ], level: "debug"},
-        tabDisplayer: { appenders: [ "stdout"/*, "tabDisplayer"*/ ], level: "debug" },
-        tabReloadLoop: { appenders: [ "stdout"/*, "tabReloadLoop"*/ ], level: "debug" },
-        tab: { appenders: [ "stdout"/*, "tab"*/ ], level: "debug" },
+        pageDisplayer: { appenders: [ "stdout"/*, "pageDisplayer"*/ ], level: "debug" },
+        pageReloadLoop: { appenders: [ "stdout"/*, "pageReloadLoop"*/ ], level: "debug" },
+        page: { appenders: [ "stdout"/*, "page"*/ ], level: "debug" },
         autoLogin: { appenders: [ "stdout"/*, "autoLogin"*/ ], level: "debug" },
         pavoApi: { appenders: ["stdout"/*, "pavoApi"*/ ], level: "debug" }
     }
 });
+
+
+// Load the configuration
+let jsonLoader = new JsonLoader();
+let appConfiguration = jsonLoader.getJson(app.getPath("home") + "/config/config.json");
+
+let pavo = new Pavo();
+let webServer = new WebServer();
 
 /**
  * Initializes the pavo app.
  */
 function initialize()
 {
-    // Load configuration
-    let appConfiguration = jsonLoader.getJson(app.getPath("home") + "/config/config.json");
-
     // Initialize the pavo app and the web server
-    webServer.initialize(pavoApi);
+    webServer.initialize(pavo.getApi());
     pavo.initialize(appConfiguration).then(function(){
         webServer.initializeEventListeners();
     });

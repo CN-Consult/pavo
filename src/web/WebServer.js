@@ -45,12 +45,12 @@ class WebServer extends EventEmitter
             override:      true,
             exception_url: false,
             htmlMinifier: {
-                removeComments:            true,
-                collapseWhitespace:        true,
+                removeComments: true,
+                collapseWhitespace: true,
                 collapseBooleanAttributes: true,
-                removeAttributeQuotes:     true,
-                removeEmptyAttributes:     true,
-                minifyJS:                  true
+                removeAttributeQuotes: true,
+                removeEmptyAttributes: true,
+                minifyJS: true
             }
         }));
 

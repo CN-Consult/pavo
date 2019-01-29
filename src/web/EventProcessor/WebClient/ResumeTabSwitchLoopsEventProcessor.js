@@ -1,26 +1,26 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
 const WebClientEventProcessor = require(__dirname + "/../WebClientEventProcessor");
 
 /**
- * Handles the "resumeTabSwitchLoops" events.
+ * Handles the "resumePageSwitchLoops" events.
  */
-class ResumeTabSwitchLoopsEventProcessor extends WebClientEventProcessor
+class ResumePageSwitchLoopsEventProcessor extends WebClientEventProcessor
 {
     /**
-     * ResumeTabSwitchLoopsEventProcessor constructor.
+     * ResumePageSwitchLoopsEventProcessor constructor.
      *
      * @param {Server} _socket The socket
      * @param {PavoApi} _pavoApi The pavo api
      */
     constructor(_socket, _pavoApi)
     {
-        super(_socket, _pavoApi, [ "resumeTabSwitchLoops" ]);
+        super(_socket, _pavoApi, [ "resumePageSwitchLoops" ]);
     }
 
     // Public Methods
@@ -34,7 +34,7 @@ class ResumeTabSwitchLoopsEventProcessor extends WebClientEventProcessor
     processWebClientEvent(_eventName, _data)
     {
         let windowIds = _data["windowIds"];
-        if(! Array.isArray(windowIds)) this.socket.emit("error", { message: "resumeTabSwitchLoops expects a list of window ids" });
+        if(! Array.isArray(windowIds)) this.socket.emit("error", { message: "resumePageSwitchLoops expects a list of window ids" });
 
         // Convert window ids to integers
         windowIds = windowIds.map(function(_windowIdString){
@@ -43,10 +43,10 @@ class ResumeTabSwitchLoopsEventProcessor extends WebClientEventProcessor
 
         let self = this;
         windowIds.forEach(function(_windowId){
-            self.pavoApi.resumeTabSwitchLoopOfWindow(_windowId);
+            self.pavoApi.resumePageSwitchLoopOfWindow(_windowId);
         });
     }
 }
 
 
-module.exports = ResumeTabSwitchLoopsEventProcessor;
+module.exports = ResumePageSwitchLoopsEventProcessor;

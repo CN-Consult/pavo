@@ -1,7 +1,7 @@
 /**
  * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -42,7 +42,9 @@ class WindowManager
     /**
      * Initializes the windows that are defined in the currently loaded app configuration.
      *
-     * @return {Promise} The promise that initializes the windows
+     * @param {Object} _windowsConfiguration The windows configuration
+     *
+     * @return {Promise} The promise that initializes the WindowManager
      */
     initialize(_windowsConfiguration)
     {
@@ -51,59 +53,23 @@ class WindowManager
     }
 
     /**
-     * Reloads the tabs that need a login that was already done in another tab.
+     * Starts the page switch loop for each window.
      *
-     * @return {Promise} The promise that reloads the tabs that need a login that was already done in another tab
+     * @returns {Promise} The promise that starts the page switch loop for each window
      */
-    reloadSecondaryLoginTabs()
-    {
-        let self = this;
-        let numberOfWindows = this.windows.length;
-        let numberOfReloadedWindows = 0;
-
-        return new Promise(function(_resolve){
-            self.windows.forEach(
-                function(_window){
-                    _window.reloadSecondaryLoginTabs().then(function(){
-
-                        numberOfReloadedWindows++;
-                        if (numberOfReloadedWindows === numberOfWindows)
-                        {
-                            _resolve("Secondary login tabs reloaded");
-                        }
-                    });
-                }
-            );
-        });
-    }
-
-    /**
-     * Starts the tab switch loop for each window.
-     *
-     * @returns {Promise} The promise that starts the tab switch loop for each window
-     */
-    startTabSwitchLoops()
+    startPageSwitchLoops()
     {
         let numberOfWindows = this.windows.length;
-        let numberOfStartedTabSwitchLoops = 0;
+        let numberOfStartedPageSwitchLoops = 0;
 
         let self = this;
         return new Promise(function(_resolve){
-
-            self.windows.forEach(
-                /** @param {Window} _window */
-                function(_window){
-
-                    _window.startTabSwitchLoop().then(function(){
-
-                        numberOfStartedTabSwitchLoops++;
-                        if (numberOfStartedTabSwitchLoops === numberOfWindows)
-                        {
-                            _resolve("Tab switch loops started");
-                        }
-                    });
-                }
-            );
+            self.windows.forEach(function(_window){
+                _window.startPageSwitchLoop().then(function(){
+                    numberOfStartedPageSwitchLoops++;
+                    if (numberOfStartedPageSwitchLoops === numberOfWindows) _resolve("Page switch loops started");
+                });
+            });
         });
     }
 
@@ -111,30 +77,28 @@ class WindowManager
     // Private Methods
 
     /**
-     * Initializes the windows according to the window configuration.
+     * Initializes the windows according to the windows configuration.
      * The windows are initialized one by one in order to lower the CPU stress.
-     * A nice side effect is that automatic logins are automatically applied to all windows that are initialized after the window with the initial login tab.
+     * A nice side effect is that automatic login's are automatically applied to all pages that are defined after the
+     * page with the initial login.
      *
-     * @param {Object} _windowsConfiguration The window configuration
-     * @param {int} _currentWindowIndex The current window index (Default: 0)
+     * @param {Object} _windowsConfiguration The windows configuration
+     * @param {int} _currentWindowIndex The current window index (Used by recursive calls)
      *
      * @returns {Promise} The promise that initializes the windows
      * @private
      */
     initializeWindows(_windowsConfiguration, _currentWindowIndex = 0)
     {
+        let window = new Window(_currentWindowIndex);
+        this.windows[window.getId()] = window;
+
         let self = this;
         return new Promise(function(_resolve){
-
-            let window = new Window(_currentWindowIndex);
-            window.initialize(_windowsConfiguration[_currentWindowIndex]).then(function() {
-
-                // Add the window to the list of windows
-                self.windows[window.getId()] = window;
-
-                if (_currentWindowIndex === _windowsConfiguration.length - 1)
+            window.initialize(_windowsConfiguration[window.getId()]).then(function(){
+                if (window.getId() === _windowsConfiguration.length - 1)
                 {
-                    self.reloadSecondaryLoginTabs().then(function(){
+                    self.reloadPagesAfterAppInitialization().then(function(){
                         windowManagerLogger.debug("WindowManager initialized.");
                         _resolve("WindowManager initialized");
                     });
@@ -145,6 +109,28 @@ class WindowManager
                         _resolve(_message);
                     });
                 }
+            });
+        });
+    }
+
+    /**
+     * Reloads the pages that are configured to be reloaded after app initialization.
+     *
+     * @return {Promise} The promise that reloads the pages that are configured to be reloaded after app initialization
+     * @private
+     */
+    reloadPagesAfterAppInitialization()
+    {
+        let numberOfWindows = this.windows.length;
+        let numberOfReloadedWindows = 0;
+
+        let self = this;
+        return new Promise(function(_resolve){
+            self.windows.forEach(function(_window){
+                _window.reloadPagesAfterAppInitialization().then(function(){
+                    numberOfReloadedWindows++;
+                    if (numberOfReloadedWindows === numberOfWindows) _resolve("Pages reloaded after app initialization");
+                });
             });
         });
     }
