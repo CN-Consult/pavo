@@ -44,7 +44,7 @@ class BrowserWindowManager
 
         let self = this;
         return new Promise(function(_resolve){
-            _page.attachToBrowserWindow(browserWindow).then(function(){
+            _page.attachToWebContents(browserWindow.webContents).then(function(){
                 self.pageBrowserWindows[_page.getId()] = browserWindow;
 
                 // Resolve with the number of page browser windows

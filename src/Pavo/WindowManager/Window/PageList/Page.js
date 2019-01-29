@@ -13,7 +13,7 @@ const AutomaticLogin = require(__dirname + "/../../../AutomaticLogin/AutomaticLo
 const pageLogger = require("log4js").getLogger("page");
 
 /**
- * Stores information about a single page and provides methods to attach/detach the page to a browser window.
+ * Stores information about a single page and provides methods to attach/detach the page to a web contents object.
  *
  * @property {int} id The id of the page
  * @property {Window} parentWindow The parent window
@@ -26,9 +26,9 @@ const pageLogger = require("log4js").getLogger("page");
  * @property {int} displayTime The time for which this page is displayed before the next page is shown in milliseconds
  * @property {int} reloadTime The time interval in which this page is reloaded in milliseconds
  * @property {boolean} reloadAfterAppInit Defines whether this page must be reloaded after the app was initialized
- * @property {boolean} isLoginDone Defines whether the automatic login for this page was successfully performed in one browser window
+ * @property {boolean} isLoginDone Defines whether the automatic login for this page was successfully performed in one web contents object
  * @property {AutomaticLogin} automaticLogin The automatic login which is used to perform a auto login if one is defined in the config file
- * @property {function} domReadyHandler The dom ready handler which is called when a attached browser window emits "dom-ready" (necessary to detach the event listener)
+ * @property {function} domReadyHandler The dom ready handler which is called when a attached web contents object emits "dom-ready" (necessary to detach the event listener)
  */
 class Page extends EventEmitter
 {
@@ -180,7 +180,7 @@ class Page extends EventEmitter
     // Event Handlers
 
     /**
-     * Event handler that is called when a attached browser window emits "dom-ready".
+     * Event handler that is called when a attached web contents object emits "dom-ready".
      *
      * @param {Electron.Event} _event The event
      *
@@ -190,7 +190,7 @@ class Page extends EventEmitter
     {
         let webContents = _event.sender;
 
-        pageLogger.debug("BrowserWindow for Page #" + this.displayId + " loaded the url " + webContents.getURL() + ".");
+        pageLogger.debug("WebContents for Page #" + this.displayId + " loaded the url " + webContents.getURL() + ".");
 
         let self = this;
         this.injectCustomScripts(webContents).then(function(){
@@ -202,52 +202,52 @@ class Page extends EventEmitter
     // Public Methods
 
     /**
-     * Loads the url and attaches the dom ready handler of this page to a browser window.
+     * Loads the url and attaches the dom ready handler of this page to a web contents object.
      *
-     * @param {Electron.BrowserWindow} _browserWindow The browser window
+     * @param {Electron.WebContents} _webContents The web contents
      *
-     * @return {Promise} The initialize browser window promise
+     * @return {Promise} The promise that loads the url and attaches the dom ready handler of this page to a web contents object
      */
-    attachToBrowserWindow(_browserWindow)
+    attachToWebContents(_webContents)
     {
-        pageLogger.debug("Attaching page #" + this.displayId + " to a BrowserWindow.");
+        pageLogger.debug("Attaching page #" + this.displayId + " to a WebContents object.");
 
-        // Attach the dom ready handler to the BrowserWindow
-        _browserWindow.webContents.on("dom-ready", this.domReadyHandler);
+        // Attach the dom ready handler to the WebContents
+        _webContents.on("dom-ready", this.domReadyHandler);
 
         let self = this;
         return new Promise(function(_resolve){
-            self.autoLogin(_browserWindow).then(function(_result){
-                self.loadUrl(_browserWindow, _result).then(function(){
-                    _resolve("Page #" + self.displayId + " attached to BrowserWindow");
+            self.autoLogin(_webContents).then(function(_result){
+                self.loadUrl(_webContents, _result).then(function(){
+                    _resolve("Page #" + self.displayId + " attached to WebContents");
                 });
             });
         });
     }
 
     /**
-     * Detaches the dom ready handler of this page from a browser window.
+     * Detaches the dom ready handler of this page from a web contents object.
      *
-     * @param {Electron.BrowserWindow} _browserWindow The browser window
+     * @param {Electron.WebContents} _webContents The web contents
      */
-    detachFromBrowserWindow(_browserWindow)
+    detachFromWebContents(_webContents)
     {
-        pageLogger.debug("Detaching page #" + this.displayId + " from a BrowserWindow");
-        _browserWindow.webContents.removeListener("dom-ready", this.domReadyHandler);
+        pageLogger.debug("Detaching page #" + this.displayId + " from a WebContents object");
+        _webContents.removeListener("dom-ready", this.domReadyHandler);
     }
 
 
     // Private Methods
 
     /**
-     * Automatically logs in a configured user for a browser window (if the auto login is defined).
+     * Automatically logs in a configured user for a web contents object (if the auto login is defined).
      *
-     * @param {Electron.BrowserWindow} _browserWindow The browser window
+     * @param {Electron.WebContents} _webContents The web contents
      *
      * @return {Promise} The auto login promise
      * @private
      */
-    autoLogin(_browserWindow)
+    autoLogin(_webContents)
     {
         let self = this;
         return new Promise(function(_resolve){
@@ -255,7 +255,7 @@ class Page extends EventEmitter
             {
                 if (self.isLoginDone === false)
                 {
-                    self.automaticLogin.login(_browserWindow).then(function(_result){
+                    self.automaticLogin.login(_webContents).then(function(_result){
 
                         if (_result === "Too many failed login attempts.")
                         {
@@ -276,13 +276,13 @@ class Page extends EventEmitter
     /**
      * Loads the url after an optional automatic login was done.
      *
-     * @param {Electron.BrowserWindow} _browserWindow The browser window
+     * @param {Electron.WebContents} _webContents The web contents
      * @param {string} _autoLoginResult The result value of the autoLogin() method
      *
      * @returns {Promise}
      * @private
      */
-    loadUrl(_browserWindow, _autoLoginResult)
+    loadUrl(_webContents, _autoLoginResult)
     {
         let self = this;
         return new Promise(function(_resolve){
@@ -295,7 +295,7 @@ class Page extends EventEmitter
             }
             else
             {
-                _browserWindow.loadURL(self.url);
+                _webContents.loadURL(self.url);
                 self.once("css files injected", function(){
                     _resolve("Url loaded.");
                 });
@@ -304,7 +304,7 @@ class Page extends EventEmitter
     }
 
     /**
-     * Injects the list of custom css and javascript files into a web contents instance of a browser window.
+     * Injects the list of custom css and javascript files into a web contents object.
      *
      * @param {Electron.WebContents} _webContents The web contents
      *

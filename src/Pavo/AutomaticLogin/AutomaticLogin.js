@@ -54,9 +54,9 @@ class AutomaticLogin
     /**
      * Loads the login url and executes javascript that fills the "name" and "password" fields and submits the form.
      *
-     * @param {Electron.BrowserWindow} _browserWindow The browser window
+     * @param {Electron.WebContents} _webContents The web contents
      */
-    login(_browserWindow)
+    login(_webContents)
     {
         this.numberOfTries++;
         let self = this;
@@ -64,16 +64,16 @@ class AutomaticLogin
         autoLoginLogger.debug("Attempting auto login (Attempt " + this.numberOfTries + ") ...");
 
         return new Promise(function(_resolve){
-            _browserWindow.loadURL(self.loginUrl);
-            _browserWindow.webContents.once("dom-ready", function(){
+            _webContents.loadURL(self.loginUrl);
+            _webContents.once("dom-ready", function(){
 
                 // Execute the login javascript code
-                _browserWindow.webContents.executeJavaScript(self.buildLoginJavascriptString());
+                _webContents.executeJavaScript(self.buildLoginJavascriptString());
 
-                self.checkBrowserWindowNavigation(_browserWindow).then(function(_browserWindowReloadStarted){
-                    self.waitForReloadCompletion(_browserWindow, _browserWindowReloadStarted === "true").then(function(){
+                self.checkWebContentsNavigation(_webContents).then(function(_webContentsReloadStarted){
+                    self.waitForReloadCompletion(_webContents, _webContentsReloadStarted === "true").then(function(){
 
-                        let parsedUrl = url.parse(_browserWindow.webContents.getURL());
+                        let parsedUrl = url.parse(_webContents.getURL());
                         let currentBaseUrl = parsedUrl.protocol + "//" + parsedUrl.host + parsedUrl.pathname;
 
                         if (self.redirectsToMainUrl && self.parentPage.getBaseURL() !== currentBaseUrl)
@@ -83,7 +83,7 @@ class AutomaticLogin
                             { // Retry after two seconds
                                 let login = self.login.bind(self);
 
-                                login(_browserWindow).then(function(_result){
+                                login(_webContents).then(function(_result){
                                   _resolve(_result);
                                 });
                             }
@@ -99,17 +99,17 @@ class AutomaticLogin
     // Private Methods
 
     /**
-     * Waits 3 seconds for the browser window to start navigating.
+     * Waits 3 seconds for the web contents to start navigating.
      *
-     * @param {Electron.BrowserWindow} _browserWindow The browser window
+     * @param {Electron.WebContents} _webContents The web contents
      *
-     * @returns {Promise} The promise that waits 3 seconds for the browser window to start navigating
+     * @returns {Promise} The promise that waits 3 seconds for the web contents to start navigating
      */
-    checkBrowserWindowNavigation(_browserWindow)
+    checkWebContentsNavigation(_webContents)
     {
         let self = this;
 
-        autoLoginLogger.debug("Waiting up to " + self.reloadTimeout + " milliseconds for browser window navigation ...");
+        autoLoginLogger.debug("Waiting up to " + self.reloadTimeout + " milliseconds for web contents navigation ...");
         return new Promise(function(_resolve){
 
             let promiseResolved = false;
@@ -122,38 +122,38 @@ class AutomaticLogin
                 _resolve("true");
             };
 
-            // Wait 3 seconds for browser reload, then decide to resolve with either false or true
+            // Wait 3 seconds for web contents reload, then decide to resolve with either false or true
             waitTimeOut = setTimeout(function(){
 
                 autoLoginLogger.warn("Page did not start navigating.");
                 if (! promiseResolved)
                 {
-                    _browserWindow.webContents.removeListener("did-start-loading", startLoadHandler);
+                    _webContents.removeListener("did-start-loading", startLoadHandler);
                     _resolve("false");
                 }
             }, self.reloadTimeout);
 
-            _browserWindow.webContents.once("did-start-loading", startLoadHandler);
+            _webContents.once("did-start-loading", startLoadHandler);
         });
     }
 
     /**
-     * Waits for the reload completion of the browser window.
+     * Waits for the reload completion of a web contents object.
      *
-     * @param _browserWindow
+     * @param {Electron.WebContents} _webContents The web contents
      * @param _reloadStarted
      *
      * @returns {Promise}
      */
-    waitForReloadCompletion(_browserWindow, _reloadStarted)
+    waitForReloadCompletion(_webContents, _reloadStarted)
     {
         return new Promise(function(_resolve){
 
             if (_reloadStarted)
             {
-                if (_browserWindow.webContents.isLoading())
+                if (_webContents.isLoading())
                 {
-                    _browserWindow.webContents.once("did-stop-loading", function(){
+                    _webContents.once("did-stop-loading", function(){
                         _resolve("Reload finished.");
                     });
                 }
