@@ -47,7 +47,7 @@ class Pavo
      */
     getApi()
     {
-        return this.api
+        return this.api;
     }
 
     /**

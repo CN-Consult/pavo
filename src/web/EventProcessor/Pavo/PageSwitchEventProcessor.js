@@ -38,10 +38,10 @@ class PageSwitchEventProcessor extends BaseEventProcessor
     {
         let statusUpdate = {
             type: _eventName,
-            window: _data["page"].getParentWindow().getId(),
-            page: _data["page"].getId(),
-            remainingDisplayMilliseconds: _data["remainingDisplayTime"],
-            pageSwitchLoopIsActive: _data["isActive"]
+            window: _data.page.getParentWindow().getId(),
+            page: _data.page.getId(),
+            remainingDisplayMilliseconds: _data.remainingDisplayTime,
+            pageSwitchLoopIsActive: _data.isActive
         };
 
         this.socket.emit("pageSwitchLoopStatusUpdate", statusUpdate);

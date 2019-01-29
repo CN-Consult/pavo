@@ -33,7 +33,7 @@ class SwitchToPageEventProcessor extends WebClientEventProcessor
      */
     processWebClientEvent(_eventName, _data)
     {
-        this.pavoApi.switchToPageInWindow(parseInt(_data["windowId"]), parseInt(_data["pageId"]));
+        this.pavoApi.switchToPageInWindow(parseInt(_data.windowId), parseInt(_data.pageId));
     }
 }
 

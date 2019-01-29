@@ -132,16 +132,16 @@ function handlePageSwitchLoopStatusUpdate(_statusUpdate)
 {
     handlePageSwitch(_statusUpdate);
 
-    let startCountdown = _statusUpdate["pageSwitchLoopIsActive"];
+    let startCountdown = _statusUpdate.pageSwitchLoopIsActive;
 
-    if (_statusUpdate["type"] === "halt" || _statusUpdate["type"] === "continue")
+    if (_statusUpdate.type === "halt" || _statusUpdate.type === "continue")
     { // halt or continue
 
-        let resumePageSwitchLoop = _statusUpdate["type"] === "continue";
-        let windowConfigurationDiv = $("div#window-configuration-" + _statusUpdate["window"]);
+        let resumePageSwitchLoop = _statusUpdate.type === "continue";
+        let windowConfigurationDiv = $("div#window-configuration-" + _statusUpdate.window);
 
         // Update the time progress bar
-        let timeProgressBar = timeProgressBars[_statusUpdate["window"]];
+        let timeProgressBar = timeProgressBars[_statusUpdate.window];
         if (timeProgressBar) startCountdown = resumePageSwitchLoop;
 
         // Update page switch loop active data
@@ -162,7 +162,7 @@ function handlePageSwitchLoopStatusUpdate(_statusUpdate)
         setPageSwitchLoopCircleClass(windowConfigurationDiv, circleClassName);
     }
 
-    showRemainingTime(_statusUpdate["window"], _statusUpdate["page"], _statusUpdate["remainingDisplayMilliseconds"], startCountdown);
+    showRemainingTime(_statusUpdate.window, _statusUpdate.page, _statusUpdate.remainingDisplayMilliseconds, startCountdown);
 }
 
 /**
@@ -194,8 +194,8 @@ function setPageSwitchLoopCircleClass(_windowConfigurationDiv, _circleClassName)
  */
 function handlePageSwitch(_pageSwitchData)
 {
-    let pageId = _pageSwitchData["page"];
-    let windowId = _pageSwitchData["window"];
+    let pageId = _pageSwitchData.page;
+    let windowId = _pageSwitchData.window;
 
     setActivePage(windowId, pageId);
 }
@@ -277,10 +277,10 @@ function getWindowIdFromElement(_node)
 function handleCustomUrlLoad(_data)
 {
     // Remove "active" class from all pages
-    let windowPages = $("div#window-configuration-" + _data["window"] + " table.page-list tr");
+    let windowPages = $("div#window-configuration-" + _data.window + " table.page-list tr");
     windowPages.removeClass("active");
 
-    showCustomUrl(_data["window"], _data["url"]);
+    showCustomUrl(_data.window, _data.url);
 }
 
 /**

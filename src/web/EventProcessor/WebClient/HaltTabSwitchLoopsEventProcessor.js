@@ -33,7 +33,7 @@ class HaltPageSwitchLoopsEventProcessor extends WebClientEventProcessor
      */
     processWebClientEvent(_eventName, _data)
     {
-        let windowIds = _data["windowIds"];
+        let windowIds = _data.windowIds;
         if(! Array.isArray(windowIds)) this.socket.emit("error", { message: "haltPageSwitchLoops expects a list of window ids" });
 
         // Convert window ids to integers

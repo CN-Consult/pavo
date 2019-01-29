@@ -239,18 +239,18 @@ class Window
                 });
 
                 // Set the browser window dimensions to the displays dimensions
-                browserWindowConfiguration["x"] = display.bounds.x;
-                browserWindowConfiguration["y"] = display.bounds.y;
-                browserWindowConfiguration["width"] = display.bounds.width;
-                browserWindowConfiguration["height"] = display.bounds.height;
+                browserWindowConfiguration.x = display.bounds.x;
+                browserWindowConfiguration.y = display.bounds.y;
+                browserWindowConfiguration.width = display.bounds.width;
+                browserWindowConfiguration.height = display.bounds.height;
             }
-            else browserWindowConfiguration["fullscreen"] = true;
+            else browserWindowConfiguration.fullscreen = true;
         }
         else
         {
-            browserWindowConfiguration["y"] = this.configuration.position.y;
-            browserWindowConfiguration["width"] = this.configuration.position.width;
-            browserWindowConfiguration["height"] = this.configuration.position.height;
+            browserWindowConfiguration.y = this.configuration.position.y;
+            browserWindowConfiguration.width = this.configuration.position.width;
+            browserWindowConfiguration.height = this.configuration.position.height;
         }
 
         // Set the browser window type
@@ -263,7 +263,7 @@ class Window
              * You could also set the focusable option to false to keep a window on top all time, however you can't change that option during runtime
              * in Linux and you can't move other windows to the top this way.
              */
-            browserWindowConfiguration["type"] = "dock";
+            browserWindowConfiguration.type = "dock";
         }
 
         return browserWindowConfiguration;
@@ -281,7 +281,7 @@ class Window
     getPageConfiguration(_pageSpecificConfiguration)
     {
         // Merge the page specific and default page configuration while overwriting the default values in case of duplicated keys
-        return this.objectMerger.mergeObjects(this.configuration["pageDefaults"], _pageSpecificConfiguration, true);
+        return this.objectMerger.mergeObjects(this.configuration.pageDefaults, _pageSpecificConfiguration, true);
     }
 }
 

@@ -34,7 +34,7 @@ class LoadURLEventProcessor extends WebClientEventProcessor
      */
     processWebClientEvent(_eventName, _data)
     {
-        let windowIds = _data["windowIds"];
+        let windowIds = _data.windowIds;
         if(! Array.isArray(windowIds)) this.socket.emit("error", { message: "resumePageSwitchLoops expects a list of window ids" });
 
         // Convert window ids to integers
@@ -48,7 +48,7 @@ class LoadURLEventProcessor extends WebClientEventProcessor
         windowIds.forEach(function(_windowId){
             status[_windowId] = { windowId: _windowId };
 
-            self.pavoApi.loadURLIntoWindow(_windowId, _data["url"]);
+            self.pavoApi.loadURLIntoWindow(_windowId, _data.url);
         });
     }
 }

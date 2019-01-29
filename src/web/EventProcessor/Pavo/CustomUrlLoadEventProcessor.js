@@ -37,8 +37,8 @@ class CustomUrlLoadEventProcessor extends BaseEventProcessor
     processEvent(_pageSwitchLoop, _eventName, _data)
     {
         let statusUpdate = {
-            window: _data["page"].getParentWindow().getId(),
-            url: _data["url"]
+            window: _data.page.getParentWindow().getId(),
+            url: _data.url
         };
 
         this.socket.emit("customUrlLoad", statusUpdate);

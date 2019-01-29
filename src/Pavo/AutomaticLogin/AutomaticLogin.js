@@ -92,7 +92,7 @@ class AutomaticLogin
                         else _resolve("Login completed");
                     });
                 });
-            })
+            });
         });
     }
 

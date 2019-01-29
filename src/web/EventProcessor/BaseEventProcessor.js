@@ -59,7 +59,7 @@ class BaseEventProcessor
         let self = this;
         _eventNames.forEach(function(_eventName){
             _object.on(_eventName, function(_data){
-                self.processEvent(_object, _eventName, _data)
+                self.processEvent(_object, _eventName, _data);
             });
         });
     }
