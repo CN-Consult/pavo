@@ -5,14 +5,16 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const { BrowserWindow } = require("electron");
+const { BrowserWindow, BrowserView } = require("electron");
+const WebContentsDataInjector = require(__dirname + "/../WebContentsDataInjector");
 
 /**
- * Manages the browser windows for the pages.
+ * Manages the browser windows for the pavo windows.
+ * Each pavo window equals one Electron.BrowserWindow and each Page equals one Electron.BrowserView.
  *
  * @property {Object} browserWindowConfiguration The browser window configuration
  * @property {Page} currentPage The currently shown page
- * @property {Electron.BrowserWindow[]} pageBrowserWindows The list of page browser windows (Each page gets its own browser window)
+ * @property {Electron.BrowserView[]} pageBrowserViews The list of page browser views (Each page gets its own browser view)
  */
 class BrowserWindowManager
 {
@@ -20,12 +22,18 @@ class BrowserWindowManager
      * BrowserWindowManager constructor.
      *
      * @param {Object} _browserWindowConfiguration The browser window configuration
+     * @param {String[]} _defaultCssFilePaths The list of default css files
+     * @param {String[]} _defaultJsFilePaths The list of default javascript file paths
      */
-    constructor(_browserWindowConfiguration)
+    constructor(_browserWindowConfiguration, _defaultCssFilePaths, _defaultJsFilePaths)
     {
         this.browserWindowConfiguration = _browserWindowConfiguration;
         this.currentPage = null;
-        this.pageBrowserWindows = [];
+        this.pageBrowserViews = [];
+
+        this.browserWindow = this.createBrowserWindow();
+        this.webContentsDataInjector = new WebContentsDataInjector(_defaultCssFilePaths, _defaultJsFilePaths);
+        this.webContentsDataInjector.attachToWebContents(this.browserWindow.webContents);
     }
 
 
@@ -40,15 +48,25 @@ class BrowserWindowManager
      */
     addPage(_page)
     {
-        let browserWindow = this.createBrowserWindow();
+        let browserView = new BrowserView({
+            webPreferences: this.browserWindowConfiguration.webPreferences
+        });
+        browserView.setBounds({
+            x: 0,
+            y: 0,
+            width: this.browserWindowConfiguration.width,
+            height: this.browserWindowConfiguration.height
+        });
+
+        if (_page.id === 0) this.browserWindow.setBrowserView(browserView);
 
         let self = this;
         return new Promise(function(_resolve){
-            _page.attachToWebContents(browserWindow.webContents).then(function(){
-                self.pageBrowserWindows[_page.getId()] = browserWindow;
+            _page.attachToWebContents(browserView.webContents).then(function(){
+                self.pageBrowserViews[_page.getId()] = browserView;
 
                 // Resolve with the number of page browser windows
-                _resolve(Object.keys(self.pageBrowserWindows).length);
+                _resolve(Object.keys(self.pageBrowserViews).length);
             });
         });
     }
@@ -61,27 +79,11 @@ class BrowserWindowManager
      */
     showPage(_page)
     {
-        let nextTopBrowserWindow = this.getBrowserWindowForPage(_page);
-        nextTopBrowserWindow.setAlwaysOnTop(true);
-
-        // Remove focus from the top browser window to avoid the top bar in unity "shining through" the window
-        nextTopBrowserWindow.blur();
-
+        let nextBrowserView = this.getBrowserViewForPage(_page);
+        this.browserWindow.setBrowserView(nextBrowserView);
         this.currentPage = _page;
     }
 
-    /**
-     * Hides the currently shown page.
-     */
-    hideCurrentBrowserWindow()
-    {
-        let currentBrowserWindow = this.getCurrentBrowserWindow();
-        if (currentBrowserWindow)
-        {
-            currentBrowserWindow.setAlwaysOnTop(false);
-            this.currentPage = null;
-        }
-    }
 
     /**
      * Reloads the browser window for a specific page.
@@ -92,11 +94,11 @@ class BrowserWindowManager
      */
     reloadPageBrowserWindow(_page)
     {
-        let pageBrowserWindow = this.getBrowserWindowForPage(_page);
+        let pageBrowserView = this.getBrowserViewForPage(_page);
 
         return new Promise(function(_resolve){
 
-            if (pageBrowserWindow.webContents.getURL() === _page.url)
+            if (pageBrowserView.webContents.getURL() === _page.url)
             {
                 /*
                  * The browser window must be reloaded with loadURL instead of BrowserWindow.webContents.reload()
@@ -105,15 +107,15 @@ class BrowserWindowManager
                  * @todo: Use webContents.reload if url doesn't contain options
                  * @todo: Also check if webContents.reload() really doesn't resend the options ....
                  */
-                pageBrowserWindow.reload();
+                pageBrowserView.reload();
             }
-            else pageBrowserWindow.loadURL(_page.url);
+            else pageBrowserView.loadURL(_page.url);
 
-            _page.once("css files injected", function (){
+            _page.once("data-injected", function (){
 
-                if (pageBrowserWindow.webContents.isLoadingMainFrame())
+                if (pageBrowserView.webContents.isLoadingMainFrame())
                 {
-                    pageBrowserWindow.webContents.on("did-finish-load", function(){
+                    pageBrowserView.webContents.on("did-finish-load", function(){
                         _resolve("Page reload complete");
                     });
                 }
@@ -127,22 +129,32 @@ class BrowserWindowManager
      *
      * @param {Page} _page The page
      *
-     * @return {Electron.BrowserWindow|null} The browser window of the page or null
+     * @return {Electron.BrowserView|null} The browser window of the page or null
      */
-    getBrowserWindowForPage(_page)
+    getBrowserViewForPage(_page)
     {
-        if (_page) return this.pageBrowserWindows[_page.getId()];
+        if (_page) return this.pageBrowserViews[_page.getId()];
         else return null;
     }
 
     /**
-     * Returns the browser window that is currently on top of the stack of browser windows.
+     * Loads a custom URL into the browser window and unsets the browser view.
      *
-     * @return {Electron.BrowserWindow|null} The current browser window or null
+     * @param {String} _url The custom URL
+     *
+     * @return {Promise} The promise that loads the custom URL into the browser window and unsets the browser view
      */
-    getCurrentBrowserWindow()
+    loadCustomURL(_url)
     {
-        return this.getBrowserWindowForPage(this.currentPage);
+        this.browserWindow.setBrowserView(null);
+        this.browserWindow.webContents.loadURL(_url);
+
+        let self = this;
+        return new Promise(function(_resolve){
+            self.browserWindow.webContents.once("did-navigate", function(){
+                _resolve(self.browserWindow.webContents.getURL());
+            });
+        });
     }
 
 
@@ -177,6 +189,12 @@ class BrowserWindowManager
                 width: this.browserWindowConfiguration.width
             });
         }
+
+        browserWindow.on("focus", function(){
+
+            // Remove focus from the browser window to avoid the top bar in unity "shining through" the window
+            browserWindow.blur();
+        });
 
         return browserWindow;
     }

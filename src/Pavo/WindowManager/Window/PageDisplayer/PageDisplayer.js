@@ -15,7 +15,7 @@ const pageDisplayerLogger = require("log4js").getLogger("pageDisplayer");
  * This class can only show pages from the page list that it was initialized with.
  *
  * @property {Page} currentPage The page that is currently displayed
- * @property {Page} customUrlPage The page that is currently used to display a custom URL
+ * @property {string} customURL The custom URL that is displayed (null if no custom URL is displayed at the moment)
  * @property {PageList} pageList The page list
  * @property {PageReloadLoop} pageReloadLoop The page reload loop which is used to display reload pages
  * @property {BrowserWindowManager} browserWindowManager The browser window manager
@@ -25,12 +25,10 @@ class PageDisplayer extends EventEmitter
     /**
      * PageDisplayer constructor.
      */
-    constructor()
+    constructor(_parentWindow)
     {
         super();
-
-        this.currentPage = null;
-        this.customUrlPage = null;
+        this.parentWindow = _parentWindow;
     }
 
 
@@ -67,13 +65,13 @@ class PageDisplayer extends EventEmitter
     }
 
     /**
-     * Returns the page that is currently used to display a custom URL.
+     * Returns the custom URL that is displayed.
      *
-     * @return {null|Page} The page that is currently used to display a custom URL or null if no custom URL is displayed at the moment
+     * @return {string|null} The custom URL that is displayed or null if no custom URL is displayed at the moment
      */
-    getCustomUrlPage()
+    getCustomURL()
     {
-        return this.customUrlPage;
+        return this.customURL;
     }
 
 
@@ -83,14 +81,15 @@ class PageDisplayer extends EventEmitter
      * Initializes the PageDisplayer.
      *
      * @param {Object} _browserWindowConfiguration The browser window configuration
+     * @param {Object} _defaultPageSettings The list of default page settings
      * @param {PageList} _pageList The page list
      *
      * @return {Promise} The promise that initializes the PageDisplayer
      */
-    initialize(_browserWindowConfiguration, _pageList)
+    initialize(_browserWindowConfiguration, _defaultPageSettings, _pageList)
     {
         this.pageList = _pageList;
-        this.browserWindowManager = new BrowserWindowManager(_browserWindowConfiguration);
+        this.browserWindowManager = new BrowserWindowManager(_browserWindowConfiguration, _defaultPageSettings.cssFiles, _defaultPageSettings.jsFiles);
 
         // Initialize the browser window managers (if needed)
         let self = this;
@@ -130,7 +129,7 @@ class PageDisplayer extends EventEmitter
 
         let self = this;
         return new Promise(function(_resolve){
-            self.hideCurrentPage();
+            self.stopPageReloadLoop();
             self.browserWindowManager.showPage(_page);
             self.startPageReloadLoop(_page, _startReloadLoopForReloadPages).then(function(){
                 self.currentPage = _page;
@@ -168,21 +167,15 @@ class PageDisplayer extends EventEmitter
      */
     displayCustomURL(_url)
     {
-        pageDisplayerLogger.debug("Displaying custom url \"" + _url + "\" in page #" + this.currentPage.getDisplayId());
-        this.customUrlPage = this.currentPage;
-        let currentTopBrowserWindow = this.getCurrentTopBrowserWindow();
+        pageDisplayerLogger.debug("Displaying custom url \"" + _url + "\" in window #" + this.parentWindow.getId());
 
         let self = this;
-        return new Promise(function(_resolve, _reject){
-            if (! currentTopBrowserWindow) _reject("ERROR: Window has no top browser window");
-            else
-            {
-                currentTopBrowserWindow.loadURL(_url);
-                currentTopBrowserWindow.webContents.once("did-navigate", function(){
-                    self.emit("customUrlLoad", { page: self.currentPage, url: currentTopBrowserWindow.webContents.getURL() });
-                    _resolve("URL loaded into browser window");
-                });
-            }
+        return new Promise(function(_resolve){
+            self.browserWindowManager.loadCustomURL(_url).then(function(_realURL){
+                self.customURL = _realURL;
+                self.emit("customUrlLoad", { page: self.currentPage, url: _realURL });
+                _resolve("URL loaded into browser window");
+            });
         });
     }
 
@@ -191,17 +184,12 @@ class PageDisplayer extends EventEmitter
      */
     restoreOriginalPage()
     {
-        if (this.customUrlPage !== null)
+        if (this.customURL)
         {
-            let browserWindow = this.browserWindowManager.getBrowserWindowForPage(this.customUrlPage);
-            if (browserWindow)
-            {
-                if (browserWindow.getURL() !== this.customUrlPage.getURL())
-                {
-                    browserWindow.loadURL(this.customUrlPage.getURL());
-                }
-                this.customUrlPage = null;
-            }
+            this.browserWindowManager.showPage(this.currentPage);
+            delete this.customURL;
+
+            // TODO: Unload web contents of main browser window
         }
     }
 
@@ -210,19 +198,12 @@ class PageDisplayer extends EventEmitter
      */
     reloadCurrentPage()
     {
-        let topBrowserWindow = this.getCurrentTopBrowserWindow();
-        topBrowserWindow.webContents.reload();
-        // TODO: Return promise that resolves on reload done
-    }
+        let webContents;
+        if (this.customURL) webContents = this.browserWindowManager.browserWindow.webContents;
+        else webContents = this.browserWindowManager.getBrowserViewForPage(this.currentPage).webContents;
 
-    /**
-     * Returns the browser window that is currently on top of the stack of browser windows.
-     *
-     * @return {Electron.BrowserWindow|null} The browser window or null if no browser window is on top
-     */
-    getCurrentTopBrowserWindow()
-    {
-        return this.browserWindowManager.getCurrentBrowserWindow();
+        webContents.reload();
+        // TODO: Return promise that resolves on reload done
     }
 
 
@@ -290,17 +271,14 @@ class PageDisplayer extends EventEmitter
     }
 
     /**
-     * Hides the currently displayed page.
+     * Stops the page reload loop if one is running at the moment.
      * @private
      */
-    hideCurrentPage()
+    stopPageReloadLoop()
     {
         if (this.currentPage !== null)
         {
-            pageDisplayerLogger.debug("Hiding page #" + this.currentPage.getDisplayId());
-
             if (this.pageReloadLoop && this.pageReloadLoop.getIsActive()) this.pageReloadLoop.stop();
-            this.browserWindowManager.hideCurrentBrowserWindow();
         }
     }
 }

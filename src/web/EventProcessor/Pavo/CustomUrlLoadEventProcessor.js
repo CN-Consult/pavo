@@ -22,7 +22,7 @@ class CustomUrlLoadEventProcessor extends BaseEventProcessor
 
             /** @param {Window} _window */
             function(_window){
-                self.initializeEventListenersFor(_window.getPageSwitchLoop(), [ "customUrlLoad" ]);
+                self.initializeEventListenersFor(_window.getPageDisplayer(), [ "customUrlLoad" ]);
             }
         );
     }

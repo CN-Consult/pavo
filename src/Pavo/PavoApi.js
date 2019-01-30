@@ -142,12 +142,8 @@ class PavoApi
                             windowsStatus[windowId].remainingDisplayTime = windows[windowId].getPageSwitchLoop().calculateRemainingCycleTime();
                         }
 
-                        if (windows[windowId].getPageSwitchLoop().getPageDisplayer().getCustomUrlPage())
-                        {
-                            let topBrowserWindow = windows[windowId].getPageSwitchLoop().getPageDisplayer().getCurrentTopBrowserWindow();
-                            windowsStatus[windowId].customURL = topBrowserWindow.webContents.getURL();
-                        }
-
+                        let customURL = windows[windowId].getPageSwitchLoop().getPageDisplayer().getCustomURL();
+                        if (customURL) windowsStatus[windowId].customURL = customURL;
 
                         numberOfProcessedWindows++;
                         if (numberOfProcessedWindows === numberOfWindows - 1) _resolve(windowsStatus);

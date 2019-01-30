@@ -35,7 +35,7 @@ class Window
         this.id = _id;
         this.displayId = _id + 1;
         this.objectMerger = new ObjectMerger();
-        this.pageDisplayer = new PageDisplayer();
+        this.pageDisplayer = new PageDisplayer(this);
         this.pageSwitchLoop = new PageSwitchLoop(this.pageDisplayer);
     }
 
@@ -103,7 +103,7 @@ class Window
         let self = this;
         return new Promise(function(_resolve){
             self.initializePages(browserWindowConfiguration).then(function(_pageList){
-                self.pageDisplayer.initialize(browserWindowConfiguration, _pageList).then(function(){
+                self.pageDisplayer.initialize(browserWindowConfiguration, _windowConfiguration.pageDefaults, _pageList).then(function(){
                     self.pageSwitchLoop.initialize(self.pageDisplayer);
                     windowLogger.debug("Window #" + self.displayId + " initialized.");
                     _resolve("Window initialized");
@@ -207,6 +207,8 @@ class Window
             // Set the background color
             backgroundColor: "#000",
 
+            alwaysOnTop: true,
+
             webPreferences: {
 
                 // The browser windows don't need to be able to open the dev tools
@@ -214,6 +216,11 @@ class Window
 
                 // Disable node integration for the browser windows because the pages don't need access to node APIs
                 nodeIntegration: false,
+
+                // The "remote" module is not necessary in the BrowserWindow's
+                enableRemoteModule: false,
+
+                textAreasAreResizable: false,
 
                 // Sandbox mode improves the performance of browser windows
                 sandbox: true,
