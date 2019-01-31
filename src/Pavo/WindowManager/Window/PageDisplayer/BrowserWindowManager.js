@@ -94,11 +94,11 @@ class BrowserWindowManager
      */
     reloadPageBrowserWindow(_page)
     {
-        let pageBrowserView = this.getBrowserViewForPage(_page);
+        let pageWebContents = this.getBrowserViewForPage(_page).webContents;
 
         return new Promise(function(_resolve){
 
-            if (pageBrowserView.webContents.getURL() === _page.url)
+            if (pageWebContents.getURL() === _page.url)
             {
                 /*
                  * The browser window must be reloaded with loadURL instead of BrowserWindow.webContents.reload()
@@ -107,15 +107,15 @@ class BrowserWindowManager
                  * @todo: Use webContents.reload if url doesn't contain options
                  * @todo: Also check if webContents.reload() really doesn't resend the options ....
                  */
-                pageBrowserView.reload();
+                pageWebContents.reload();
             }
-            else pageBrowserView.loadURL(_page.url);
+            else pageWebContents.loadURL(_page.url);
 
             _page.once("data-injected", function (){
 
-                if (pageBrowserView.webContents.isLoadingMainFrame())
+                if (pageWebContents.isLoadingMainFrame())
                 {
-                    pageBrowserView.webContents.on("did-finish-load", function(){
+                    pageWebContents.on("did-finish-load", function(){
                         _resolve("Page reload complete");
                     });
                 }
