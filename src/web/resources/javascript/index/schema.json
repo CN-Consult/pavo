@@ -41,6 +41,10 @@
         "redirectsToMainUrl": {
           "type": "boolean",
           "description": "Defines whether a redirect to the main URL is expected after a successful login"
+        },
+        "reloadTimeout": {
+          "type": "integer",
+          "description": "The time to wait for a page reload before assuming that the login failed in milliseconds"
         }
       }
     },
@@ -67,6 +71,10 @@
         "reloadAfterAppInit": {
           "type": "boolean",
           "description": "Defines whether this page will be reloaded after all initial page loads are complete"
+        },
+        "zoomFactor": {
+          "type": "number",
+          "description": "Defines the factor in percent/100 by which the page will be zoomed"
         },
         "cssFiles": {
           "type": "array",

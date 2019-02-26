@@ -40,7 +40,6 @@ class AutomaticLogin
         this.passwordField = _autoLoginConfiguration.password;
         this.redirectsToMainUrl = _autoLoginConfiguration.redirectsToMainUrl;
 
-        // TODO: Add this option to schema for json editor
         if (_autoLoginConfiguration.reloadTimeout) this.reloadTimeout = _autoLoginConfiguration.reloadTimeout;
         else this.reloadTimeout = 3000;
 

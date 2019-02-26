@@ -15,6 +15,7 @@ const EventEmitter = require("events");
  * @property {String[]} cssFilePaths The list of css files to inject into WebContents objects
  * @property {String[]} javascriptFilePaths The list of javascript files to inject into WebContents objects
  * @property {function} domReadyHandler The function that will be called on WebContents "dom-ready" events
+ * @property {float} zoomFactor The zoom factor for the web contents in percentage/100
  */
 class WebContentsDataInjector extends EventEmitter
 {
@@ -23,8 +24,9 @@ class WebContentsDataInjector extends EventEmitter
      *
      * @param {String[]} _cssFilePaths The css file paths relative from the custom css file base folder
      * @param {String[]} _javascriptFilePaths The javascript file paths relative from the custom javascript file
+     * @param {float} _zoomFactor The zoom factor for the web contents in percentage/100 (optional)
      */
-    constructor(_cssFilePaths, _javascriptFilePaths)
+    constructor(_cssFilePaths, _javascriptFilePaths, _zoomFactor = null)
     {
         super();
 
@@ -49,6 +51,8 @@ class WebContentsDataInjector extends EventEmitter
             });
         }
         else this.javascriptFilePaths = [];
+
+        if (_zoomFactor) this.zoomFactor = _zoomFactor;
 
         this.domReadyHandler = this.domReadyHandlerFunction.bind(this);
     }
@@ -108,9 +112,11 @@ class WebContentsDataInjector extends EventEmitter
     {
         let self = this;
         return new Promise(function(_resolve){
-            self.injectCssFiles(_webContents).then(function(){
-                self.injectJavascriptFiles(_webContents).then(function(){
-                    _resolve("Custom css and javascript files injected");
+            self.injectZoomFactor(_webContents).then(function(){
+                self.injectCssFiles(_webContents).then(function(){
+                    self.injectJavascriptFiles(_webContents).then(function(){
+                        _resolve("Custom css and javascript files injected");
+                    });
                 });
             });
         });
@@ -118,6 +124,40 @@ class WebContentsDataInjector extends EventEmitter
 
 
     // Private Methods
+
+    /**
+     * Injects the zoom factor as css property into a web contents object.
+     * webContents.setZoomFactor() cannot be used because it uses chromium's zoom, which by design zooms per domain instead
+     * of per tab as one would expect. This means that two pages with the same domain cannot be displayed with different
+     * zoom factors at the same time.
+     *
+     * @param {Electron.WebContents} _webContents The web contents
+     *
+     * @return {Promise} The promise that injects the zoom factor
+     * @private
+     */
+    injectZoomFactor(_webContents)
+    {
+        if (this.zoomFactor)
+        {
+            let zoomPercent = this.zoomFactor * 100;
+
+            /*
+             * zoom is a non-standard css property but is supported by chromium
+             * That property is used instead of transform: scale(x) because transform causes unwanted behaviour in some
+             * frameworks that calculate item positions based on the item widths
+             */
+            let zoomCssString = "body { zoom: " + zoomPercent + "%; }";
+
+            return _webContents.executeJavaScript(WebContentsDataInjector.buildCssInjectionJavaScript(zoomCssString));
+        }
+        else
+        {
+            return new Promise(function(_resolve){
+                _resolve("No zoom factor specified");
+            });
+        }
+    }
 
     /**
      * Injects the list of custom css files into a WebContents object.
@@ -188,7 +228,8 @@ class WebContentsDataInjector extends EventEmitter
      */
     static injectCssFile(_webContents, _cssFilePath)
     {
-        return _webContents.executeJavaScript(WebContentsDataInjector.buildCssInjectionJavaScript(_cssFilePath));
+        let cssFileContent = WebContentsDataInjector.getFileContentString(_cssFilePath);
+        return _webContents.executeJavaScript(WebContentsDataInjector.buildCssInjectionJavaScript(cssFileContent));
     }
 
     /**
@@ -219,18 +260,18 @@ class WebContentsDataInjector extends EventEmitter
     }
 
     /**
-     * Builds the java script string that inserts an inline css tag into a pages header.
+     * Builds a java script string that inserts an inline css tag into a pages header.
      * Using javascript to add the css as inline tag because using the "WebContents.insertCss" method doesn't
-     * style the elements as expected.
+     * style the elements as expected (!important statements seem to be ignored).
      *
-     * @param {String} _cssFilePath The path to the css file
+     * @param {String} _cssCode The css code
      *
      * @return {String} The javascript string that inserts an inline css tag into a pages header
      * @private
      */
-    static buildCssInjectionJavaScript(_cssFilePath)
+    static buildCssInjectionJavaScript(_cssCode)
     {
-        let oneLineCssContent = WebContentsDataInjector.getFileContentString(_cssFilePath).replace(/\r?\n|\r/gm, "");
+        let oneLineCssCode = _cssCode.replace(/\r?\n|\r/gm, "");
 
         /*
          * Creates a <style> element and fills it with the css file content.
@@ -238,7 +279,7 @@ class WebContentsDataInjector extends EventEmitter
          */
         return "var styleElement=document.createElement(\"style\");" +
             "styleElement.type=\"text/css\";" +
-            "styleElement.appendChild(document.createTextNode(\"" + oneLineCssContent + "\"));" +
+            "styleElement.appendChild(document.createTextNode(\"" + oneLineCssCode + "\"));" +
             "document.getElementsByTagName(\"head\")[0].appendChild(styleElement);";
     }
 }
