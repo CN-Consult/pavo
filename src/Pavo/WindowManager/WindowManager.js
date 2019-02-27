@@ -11,20 +11,34 @@ const windowManagerLogger = require("log4js").getLogger("windowManager");
 /**
  * Creates and stores the pavo windows.
  *
+ * @property {Pavo} parentPavo The parent pavo
  * @property {Window[]} windows The list of windows
  */
 class WindowManager
 {
     /**
      * WindowManager constructor.
+     *
+     * @param {Pavo} _parentPavo The parent pavo
      */
-    constructor()
+    constructor(_parentPavo)
     {
+        this.parentPavo = _parentPavo;
         this.windows = [];
     }
 
 
     // Getters and setters
+
+    /**
+     * Returns the parent pavo.
+     *
+     * @return {Pavo} The parent pavo
+     */
+    getParentPavo()
+    {
+        return this.parentPavo;
+    }
 
     /**
      * Returns the list of windows.
@@ -90,7 +104,7 @@ class WindowManager
      */
     initializeWindows(_windowsConfiguration, _currentWindowIndex = 0)
     {
-        let window = new Window(_currentWindowIndex);
+        let window = new Window(this, _currentWindowIndex);
         this.windows[window.getId()] = window;
 
         let self = this;

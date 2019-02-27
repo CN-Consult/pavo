@@ -6,7 +6,6 @@
  */
 
 const { app } = require("electron");
-const JsonLoader = require(__dirname + "/src/Util/JsonLoader");
 const Pavo = require(__dirname + "/src/Pavo/Pavo");
 const WebServer = require(__dirname + "/src/web/WebServer");
 const log4js = require("log4js");
@@ -45,10 +44,6 @@ log4js.configure({
 });
 
 
-// Load the configuration
-let jsonLoader = new JsonLoader();
-let appConfiguration = jsonLoader.getJson(app.getPath("home") + "/config/config.json");
-
 let pavo = new Pavo();
 let webServer = new WebServer();
 
@@ -59,7 +54,7 @@ function initialize()
 {
     // Initialize the pavo app and the web server
     webServer.initialize(pavo.getApi());
-    pavo.initialize(appConfiguration).then(function(){
+    pavo.initialize(app.getPath("home") + "/config").then(function(){
         webServer.initializeEventListeners();
     });
 }

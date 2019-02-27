@@ -70,7 +70,12 @@ class Page extends EventEmitter
         if (_pageConfiguration.reloadAfterAppInit) this.reloadAfterAppInit = _pageConfiguration.reloadAfterAppInit;
         else this.reloadAfterAppInit = false;
 
-        this.webContentsDataInjector = new WebContentsDataInjector(_pageConfiguration.cssFiles, _pageConfiguration.jsFiles, _pageConfiguration.zoomFactor);
+        this.webContentsDataInjector = new WebContentsDataInjector(
+            this.parentWindow.getParentWindowManager().getParentPavo().getConfigDirectoryPath(),
+            _pageConfiguration.cssFiles,
+            _pageConfiguration.jsFiles,
+            _pageConfiguration.zoomFactor
+        );
 
         this.domReadyHandler = this.domReadyHandlerFunction.bind(this);
     }

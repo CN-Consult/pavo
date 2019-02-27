@@ -47,7 +47,7 @@ class PavoController extends BaseApiController
         this.logger.info("Received configuration set request");
 
         // TODO: Check that configuration is different from current one
-        let configBaseDirectory = app.getPath("home") + "/config";
+        let configBaseDirectory = this.parentPavoApi.getParentPavo().getConfigDirectoryPath();
         let configBackupDirectory = configBaseDirectory + "/config-backups";
 
         // Create the backup directory for config files if necessary

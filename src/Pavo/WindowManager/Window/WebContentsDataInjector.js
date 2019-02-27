@@ -5,7 +5,6 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const { app } = require("electron");
 const fs = require("fs");
 const EventEmitter = require("events");
 
@@ -22,17 +21,16 @@ class WebContentsDataInjector extends EventEmitter
     /**
      * WebContentsDataInjector constructor.
      *
+     * @param {String} _configDirectoryPath The path to the config directory
      * @param {String[]} _cssFilePaths The css file paths relative from the custom css file base folder
      * @param {String[]} _javascriptFilePaths The javascript file paths relative from the custom javascript file
      * @param {float} _zoomFactor The zoom factor for the web contents in percentage/100 (optional)
      */
-    constructor(_cssFilePaths, _javascriptFilePaths, _zoomFactor = null)
+    constructor(_configDirectoryPath, _cssFilePaths, _javascriptFilePaths, _zoomFactor = null)
     {
         super();
 
-        // TODO: Need base folder in constructor from which css and js files are loaded
-        // TODO: Default base folder = home/config
-        let basePath = app.getPath("home") + "/";
+        let basePath = _configDirectoryPath + "/";
 
         // Initialize the list of css files
         if (_cssFilePaths)

@@ -16,6 +16,7 @@ const windowLogger = require("log4js").getLogger("window");
 /**
  * Creates and stores the pages and the configuration of a single window.
  *
+ * @property {WindowManager} parentWindowManager The parent window manager
  * @property {int} id The window id
  * @property {int} displayId The id that will be displayed in the logs and in the user interface
  * @property {Object} configuration The loaded window configuration
@@ -28,10 +29,12 @@ class Window
     /**
      * Window constructor.
      *
+     * @param {WindowManager} _parentWindowManager The parent window manager
      * @param {int} _id The id of this window
      */
-    constructor(_id)
+    constructor(_parentWindowManager, _id)
     {
+        this.parentWindowManager = _parentWindowManager;
         this.id = _id;
         this.displayId = _id + 1;
         this.objectMerger = new ObjectMerger();
@@ -41,6 +44,16 @@ class Window
 
 
     // Getters and Setters
+
+    /**
+     * Returns the parent window manager.
+     *
+     * @return {WindowManager} The parent window manager
+     */
+    getParentWindowManager()
+    {
+        return this.parentWindowManager;
+    }
 
     /**
      * Returns the window id.
@@ -55,7 +68,7 @@ class Window
     /**
      * Returns the display id of this window.
      *
-     * @returns {int} The display id of this window
+     * @return {int} The display id of this window
      */
     getDisplayId()
     {

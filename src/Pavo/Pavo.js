@@ -5,6 +5,7 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const JsonLoader = require(__dirname + "/../Util/JsonLoader");
 const PavoApi = require(__dirname + "/PavoApi");
 const WindowManager = require(__dirname + "/WindowManager/WindowManager");
 
@@ -12,6 +13,7 @@ const WindowManager = require(__dirname + "/WindowManager/WindowManager");
  * Wrapper class for the pavo app.
  *
  * @property {boolean} isInitialized Defines whether the initialize() method was completed at least once
+ * @property {String} configDirectoryPath The path to the config directory from which the config.json, css and js files will be loaded
  * @property {Object} loadedConfiguration The currently loaded configuration
  * @property {WindowManager} windowManager The window manager that creates and manages the windows based on the loaded configuration
  * @property {PavoApi} api The pavo api
@@ -38,6 +40,16 @@ class Pavo
     getIsInitialized()
     {
         return this.isInitialized;
+    }
+
+    /**
+     * Returns the config directory path.
+     *
+     * @return {String} The config directory path
+     */
+    getConfigDirectoryPath()
+    {
+        return this.configDirectoryPath;
     }
 
     /**
@@ -76,16 +88,17 @@ class Pavo
     /**
      * Initializes the pavo app with a specific app configuration.
      *
-     * @param {Object} _configuration The app configuration
+     * @param {String} _configDirectoryPath The path to the config directory
      *
      * @return {Promise} The promise that initializes the pavo app
      */
-    initialize(_configuration)
+    initialize(_configDirectoryPath)
     {
-        this.loadedConfiguration = _configuration;
+        this.configDirectoryPath = _configDirectoryPath;
+        this.loadedConfiguration = JsonLoader.getJson(this.configDirectoryPath + "/config.json");
 
         // Initialize the window manager
-        this.windowManager = new WindowManager();
+        this.windowManager = new WindowManager(this);
 
         let self = this;
         return new Promise(function(_resolve){
