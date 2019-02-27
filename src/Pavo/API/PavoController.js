@@ -4,7 +4,6 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const { app } = require("electron");
 const fs = require("fs");
 const mv = require("mv");
 

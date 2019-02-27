@@ -1,5 +1,4 @@
 /**
- * @file
  * @version 0.1
  * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
@@ -163,6 +162,14 @@ class BrowserWindowManager
                 _resolve(self.browserWindow.webContents.getURL());
             });
         });
+    }
+
+    /**
+     * Loads a empty page into the browser window.
+     */
+    unloadCustomURL()
+    {
+        this.browserWindow.webContents.loadURL("about:blank");
     }
 
 
