@@ -12,6 +12,7 @@ const WebContentsDataInjector = require(__dirname + "/../WebContentsDataInjector
  * Manages the browser windows for the pavo windows.
  * Each pavo window equals one Electron.BrowserWindow and each Page equals one Electron.BrowserView.
  *
+ * @property {PageDisplayer} parentPageDisplayer The parent page displayer
  * @property {Object} browserWindowConfiguration The browser window configuration
  * @property {Page} currentPage The currently shown page
  * @property {Electron.BrowserView[]} pageBrowserViews The list of page browser views (Each page gets its own browser view)
@@ -21,18 +22,25 @@ class BrowserWindowManager
     /**
      * BrowserWindowManager constructor.
      *
+     * @param {PageDisplayer} _parentPageDisplayer The parent page displayer
      * @param {Object} _browserWindowConfiguration The browser window configuration
      * @param {String[]} _defaultCssFilePaths The list of default css files
      * @param {String[]} _defaultJsFilePaths The list of default javascript file paths
      */
-    constructor(_browserWindowConfiguration, _defaultCssFilePaths, _defaultJsFilePaths)
+    constructor(_parentPageDisplayer, _browserWindowConfiguration, _defaultCssFilePaths, _defaultJsFilePaths)
     {
+        this.parentPageDisplayer = _parentPageDisplayer;
         this.browserWindowConfiguration = _browserWindowConfiguration;
         this.currentPage = null;
         this.pageBrowserViews = [];
 
         this.browserWindow = this.createBrowserWindow();
-        this.webContentsDataInjector = new WebContentsDataInjector(_defaultCssFilePaths, _defaultJsFilePaths);
+        this.webContentsDataInjector = new WebContentsDataInjector(
+            this.parentPageDisplayer.getParentWindow().getParentWindowManager().getParentPavo().getConfigDirectoryPath(),
+            _defaultCssFilePaths,
+            _defaultJsFilePaths
+        );
+
         this.webContentsDataInjector.attachToWebContents(this.browserWindow.webContents);
     }
 

@@ -14,6 +14,7 @@ const pageDisplayerLogger = require("log4js").getLogger("pageDisplayer");
  * Manages showing and hiding of pages for a window.
  * This class can only show pages from the page list that it was initialized with.
  *
+ * @property {Window} parentWindow The parent window
  * @property {Page} currentPage The page that is currently displayed
  * @property {string} customURL The custom URL that is displayed (null if no custom URL is displayed at the moment)
  * @property {PageList} pageList The page list
@@ -33,6 +34,16 @@ class PageDisplayer extends EventEmitter
 
 
     // Getters and Setters
+
+    /**
+     * Returns the parent window.
+     *
+     * @return {Window} The parent window
+     */
+    getParentWindow()
+    {
+        return this.parentWindow;
+    }
 
     /**
      * Returns the currently displayed page.
@@ -89,7 +100,7 @@ class PageDisplayer extends EventEmitter
     initialize(_browserWindowConfiguration, _defaultPageSettings, _pageList)
     {
         this.pageList = _pageList;
-        this.browserWindowManager = new BrowserWindowManager(_browserWindowConfiguration, _defaultPageSettings.cssFiles, _defaultPageSettings.jsFiles);
+        this.browserWindowManager = new BrowserWindowManager(this, _browserWindowConfiguration, _defaultPageSettings.cssFiles, _defaultPageSettings.jsFiles);
 
         // Initialize the browser window managers (if needed)
         let self = this;
