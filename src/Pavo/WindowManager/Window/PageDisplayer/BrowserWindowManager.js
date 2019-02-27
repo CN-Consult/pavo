@@ -190,12 +190,6 @@ class BrowserWindowManager
             });
         }
 
-        browserWindow.on("focus", function(){
-
-            // Remove focus from the browser window to avoid the top bar in unity "shining through" the window
-            browserWindow.blur();
-        });
-
         return browserWindow;
     }
 }

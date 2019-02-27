@@ -264,13 +264,13 @@ class Window
         if (os.platform() === "linux")
         {
             /*
-             * By setting the window type to "dock" the window ignores the task bar and top bar in the unity desktop environment.
-             * The top browser window may not have focus because otherwise the bottom line and the shadow of the top bar are visible through the window.
+             * By setting the focusable option to false the window will ignore the window manager in Linux and will stay
+             * on top of everything else.
              *
-             * You could also set the focusable option to false to keep a window on top all time, however you can't change that option during runtime
-             * in Linux and you can't move other windows to the top this way.
+             * An alternative way to achieve this would be to set the window type to "dock". However this does only work
+             * in Ubuntu 16 with the Unity desktop environment and doesn't work in Ubuntu 18 with the GNOME3 desktop environment.
              */
-            browserWindowConfiguration.type = "dock";
+            browserWindowConfiguration.focusable = false;
         }
 
         return browserWindowConfiguration;
