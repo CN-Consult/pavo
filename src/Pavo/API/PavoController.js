@@ -6,8 +6,10 @@
 
 const fs = require("fs");
 const mv = require("mv");
+const { objectEquals } = require("object-equals");
 
 const BaseApiController = require(__dirname + "/BaseApiController.js");
+const JsonLoader = require(__dirname + "/../../Util/JsonLoader.js");
 
 /**
  * Provides methods to get and set the pavo configuration.
@@ -45,8 +47,15 @@ class PavoController extends BaseApiController
     {
         this.logger.info("Received configuration set request");
 
-        // TODO: Check that configuration is different from current one
         let configBaseDirectory = this.parentPavoApi.getParentPavo().getConfigDirectoryPath();
+
+        let currentConfiguration = JsonLoader.getJson(configBaseDirectory + "/config.json");
+        if (objectEquals(_configuration, currentConfiguration))
+        {
+            this.logger.info("Did not save configuration: New configuration matches current config.json");
+            return;
+        }
+
         let configBackupDirectory = configBaseDirectory + "/config-backups";
 
         // Create the backup directory for config files if necessary
