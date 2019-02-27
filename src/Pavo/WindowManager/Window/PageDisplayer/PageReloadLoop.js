@@ -107,7 +107,7 @@ class PageReloadLoop extends Loop
         let self = this;
         return new Promise(function(_resolve){
             pageReloadLoopLogger.debug("Reloading page #" + self.reloadPage.getDisplayId());
-            self.browserWindowManager.reloadPageBrowserWindow(self.reloadPage).then(function(){
+            self.browserWindowManager.reloadPageBrowserView(self.reloadPage).then(function(){
                 _resolve("Page reloaded");
             });
         });

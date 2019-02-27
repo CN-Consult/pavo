@@ -44,13 +44,22 @@ class WindowController extends BaseApiController
      * Reloads a specified window.
      *
      * @param {int} _windowId The id of the window
+     *
+     * @return {Promise} The promise that reloads the specified window
      */
     reloadWindow(_windowId)
     {
         this.logger.info("Received reload window request for window " + _windowId);
 
         let window = this.parentPavoApi.getWindows()[_windowId];
-        if (window) window.getPageDisplayer().reloadCurrentPage();
+
+        if (window) return window.getPageDisplayer().reloadCurrentPage();
+        else
+        {
+            return new Promise(function(_resolve, _reject){
+                _reject("Could not reload window: No window with id '" + _windowId + "' exists")
+            });
+        }
     }
 }
 

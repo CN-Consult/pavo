@@ -160,7 +160,7 @@ class PageDisplayer extends EventEmitter
         let self  =this;
         return new Promise(function(_resolve){
             pageDisplayerLogger.debug("Reloading page #" + _page.getDisplayId());
-            self.browserWindowManager.reloadPageBrowserWindow(_page).then(function() {
+            self.browserWindowManager.reloadPageBrowserView(_page).then(function() {
                 _resolve("Page reloaded.");
             });
         });
@@ -190,6 +190,16 @@ class PageDisplayer extends EventEmitter
     }
 
     /**
+     * Returns whether this PageDisplayer is currently displaying a custom URL.
+     *
+     * @return {Boolean} True if this PageDisplayer is currently displaying a custom URL, false otherwise
+     */
+    isDisplayingCustomURL()
+    {
+        return (this.customURL && ! this.browserWindowManager.getCurrentPage());
+    }
+
+    /**
      * Restores the original page of the current page.
      */
     restoreOriginalPage()
@@ -205,15 +215,13 @@ class PageDisplayer extends EventEmitter
 
     /**
      * Reloads the current page.
+     *
+     * @return {Promise} The promise that reloads the current page
      */
     reloadCurrentPage()
     {
-        let webContents;
-        if (this.customURL) webContents = this.browserWindowManager.browserWindow.webContents;
-        else webContents = this.browserWindowManager.getBrowserViewForPage(this.currentPage).webContents;
-
-        webContents.reload();
-        // TODO: Return promise that resolves on reload done
+        if (this.isDisplayingCustomURL()) return this.browserWindowManager.reloadBrowserWindow();
+        else return this.browserWindowManager.reloadPageBrowserView(this.currentPage);
     }
 
 

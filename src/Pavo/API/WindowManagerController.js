@@ -72,8 +72,10 @@ class WindowManagerController extends BaseApiController
                             windowsStatus[windowId].remainingDisplayTime = windows[windowId].getPageSwitchLoop().calculateRemainingCycleTime();
                         }
 
-                        let customURL = windows[windowId].getPageSwitchLoop().getPageDisplayer().getCustomURL();
-                        if (customURL) windowsStatus[windowId].customURL = customURL;
+                        if (windows[windowId].getPageSwitchLoop().getPageDisplayer().isDisplayingCustomURL())
+                        {
+                            windowsStatus[windowId].customURL = windows[windowId].getPageSwitchLoop().getPageDisplayer().getCustomURL();
+                        }
 
                         numberOfProcessedWindows++;
                         if (numberOfProcessedWindows === numberOfWindows - 1) _resolve(windowsStatus);

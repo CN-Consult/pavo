@@ -30,7 +30,6 @@ class BrowserWindowManager
     {
         this.parentPageDisplayer = _parentPageDisplayer;
         this.browserWindowConfiguration = _browserWindowConfiguration;
-        this.currentPage = null;
         this.pageBrowserViews = [];
 
         this.browserWindow = this.createBrowserWindow();
@@ -41,6 +40,19 @@ class BrowserWindowManager
         );
 
         this.webContentsDataInjector.attachToWebContents(this.browserWindow.webContents);
+    }
+
+
+    // Getters and Setters
+
+    /**
+     * Returns the page that is currently displayed.
+     *
+     * @return {Page|null} The currently displayed page or null if a custom URL is displayed at the moment
+     */
+    getCurrentPage()
+    {
+        return this.currentPage;
     }
 
 
@@ -91,6 +103,22 @@ class BrowserWindowManager
         this.currentPage = _page;
     }
 
+    /**
+     * Reloads the browser window of this BrowserWindowManager.
+     *
+     * @return {Promise} The promise that reloads the browser window
+     */
+    reloadBrowserWindow()
+    {
+        let self = this;
+        return new Promise(function(_resolve){
+
+            self.browserWindow.webContents.reload();
+            self.webContentsDataInjector.once("data-injected", function(){
+                _resolve("BrowserWindow reloaded");
+            });
+        });
+    }
 
     /**
      * Reloads the browser window for a specific page.
@@ -99,25 +127,13 @@ class BrowserWindowManager
      *
      * @return {Promise} The promise that reloads the browser window for the page
      */
-    reloadPageBrowserWindow(_page)
+    reloadPageBrowserView(_page)
     {
         let pageWebContents = this.getBrowserViewForPage(_page).webContents;
 
         return new Promise(function(_resolve){
 
-            if (pageWebContents.getURL() === _page.url)
-            {
-                /*
-                 * The browser window must be reloaded with loadURL instead of BrowserWindow.webContents.reload()
-                 * because the options in the url will be passed to the web server again this way
-                 *
-                 * @todo: Use webContents.reload if url doesn't contain options
-                 * @todo: Also check if webContents.reload() really doesn't resend the options ....
-                 */
-                pageWebContents.reload();
-            }
-            else pageWebContents.loadURL(_page.url);
-
+            pageWebContents.reload();
             _page.once("data-injected", function (){
 
                 if (pageWebContents.isLoadingMainFrame())
@@ -153,6 +169,7 @@ class BrowserWindowManager
      */
     loadCustomURL(_url)
     {
+        this.currentPage = null;
         this.browserWindow.setBrowserView(null);
         this.browserWindow.webContents.loadURL(_url);
 
