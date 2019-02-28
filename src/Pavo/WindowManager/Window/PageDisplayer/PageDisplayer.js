@@ -31,6 +31,16 @@ class PageDisplayer extends EventEmitter
         this.parentWindow = _parentWindow;
     }
 
+    /**
+     * Destroys this PageDisplayer.
+     *
+     * @return {Promise} The promise that destroys this PageDisplayer
+     */
+    destroy()
+    {
+        return this.browserWindowManager.destroy();
+    }
+
 
     // Getters and Setters
 

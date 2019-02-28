@@ -27,6 +27,7 @@ $(document).ready(function() {
     $("button#reload-window").on("click", reloadWindows);
     $("div.window-configuration table.page-list tr.defined-page").on("click", switchToPage);
     $("div#pavo-overview button#edit-pavo-config").on("click", showJsonEditor);
+    $("div#pavo-overview button#restart-pavo").on("click", restartPavo);
 
     socket.on("pageSwitchLoopStatusUpdate", handlePageSwitchLoopStatusUpdate);
     socket.on("customUrlLoad", handleCustomUrlLoad);
@@ -121,6 +122,14 @@ function switchToPage(_event)
     let pageId = $(clickedPageTableRow).data("page");
 
     socket.emit("switchToPage", { windowId: windowId, pageId: pageId });
+}
+
+/**
+ * Restarts the pavo app.
+ */
+function restartPavo()
+{
+    socket.emit("restartPavo");
 }
 
 /**

@@ -41,6 +41,17 @@ class Window
         this.pageSwitchLoop = new PageSwitchLoop(this.pageDisplayer);
     }
 
+    /**
+     * Destroys this Window.
+     *
+     * @return {Promise} The promise that destroys this Window
+     */
+    destroy()
+    {
+        this.pageSwitchLoop.halt();
+        return this.pageDisplayer.destroy();
+    }
+
 
     // Getters and Setters
 

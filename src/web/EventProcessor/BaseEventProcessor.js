@@ -1,5 +1,4 @@
 /**
- * @file
  * @version 0.1
  * @copyright 2018 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
@@ -8,6 +7,9 @@
 /**
  * Parent class for event processors.
  * Event processors can handle a specified list of events and emit results with a socket.
+ *
+ * @property {Server} socket The socket
+ * @property {PavoApi} pavoApi The pavo API
  */
 class BaseEventProcessor
 {
@@ -15,12 +17,13 @@ class BaseEventProcessor
      * BaseEventProcessor constructor.
      *
      * @param {Server} _socket The socket
-     * @param {PavoApi} _pavoApi The pavo api
+     * @param {PavoApi} _pavoApi The pavo API
      */
     constructor(_socket, _pavoApi)
     {
         this.socket = _socket;
         this.pavoApi = _pavoApi;
+        this.eventHandlers = {};
     }
 
 
@@ -31,6 +34,24 @@ class BaseEventProcessor
      */
     initializeEventListeners()
     {
+    }
+
+    /**
+     * Unregisters the current event listeners and calls initializeEventListeners.
+     */
+    reinitializeEventListeners()
+    {
+        for (let eventName in this.eventHandlers)
+        {
+            if (this.eventHandlers.hasOwnProperty(eventName))
+            {
+                let eventHandler = this.eventHandlers[eventName];
+                eventHandler.object.removeListener(eventName, eventHandler.handler);
+            }
+        }
+
+        this.eventHandlers = {};
+        this.initializeEventListeners();
     }
 
     /**
@@ -58,9 +79,15 @@ class BaseEventProcessor
     {
         let self = this;
         _eventNames.forEach(function(_eventName){
-            _object.on(_eventName, function(_data){
-                self.processEvent(_object, _eventName, _data);
-            });
+
+            self.eventHandlers[_eventName] = {
+                object: _object,
+                handler: function(_data){
+                    self.processEvent(_object, _eventName, _data);
+                }
+            };
+
+            _object.on(_eventName, self.eventHandlers[_eventName].handler);
         });
     }
 }

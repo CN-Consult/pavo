@@ -77,6 +77,13 @@ class WebServer extends EventEmitter
         // Initialize the url routes
         this.initializeRoutes();
 
+        let self = this;
+        _pavoApi.getParentPavo().on("restart", function(){
+            _pavoApi.getParentPavo().once("initialized", function(){
+                self.reinitializePavoEventProcessors();
+            });
+        });
+
         /*
          * The web server is listening on port 8080 because ports below 1024 require to run the app with root access
          * @see: https://stackoverflow.com/a/9166332
@@ -91,6 +98,7 @@ class WebServer extends EventEmitter
      * Initializes the controllers for the different routes.
      *
      * @param {PavoApi} _pavoApi The api for the pavo app that can be configured with this web server
+     * @private
      */
     initializeControllers(_pavoApi)
     {
@@ -103,6 +111,7 @@ class WebServer extends EventEmitter
      * Initializes the event processors for the socket events.
      *
      * @param {PavoApi} _pavoApi The pavo api
+     * @private
      */
     initializeEventProcessors(_pavoApi)
     {
@@ -124,7 +133,21 @@ class WebServer extends EventEmitter
     }
 
     /**
+     * Reinitializes the pavo event processors.
+     *
+     * @private
+     */
+    reinitializePavoEventProcessors()
+    {
+        this.pavoEventProcessors.forEach(function(_eventProcessor){
+            _eventProcessor.reinitializeEventListeners();
+        });
+    }
+
+    /**
      * Initializes the routes (The responses that a web site visitor gets when trying to open a specific route on the server).
+     *
+     * @private
      */
     initializeRoutes()
     {
@@ -148,6 +171,8 @@ class WebServer extends EventEmitter
 
     /**
      * Initializes the event listeners for the socket events and the pavo events.
+     *
+     * @private
      */
     initializeEventListeners()
     {
@@ -176,7 +201,8 @@ class WebServer extends EventEmitter
      *
      * @param {string} _index The controller index in the controllers list
      *
-     * @returns {function} The controllers response function
+     * @return {function} The controllers response function
+     * @private
      */
     getControllerResponse(_index)
     {

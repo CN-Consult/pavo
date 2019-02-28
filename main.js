@@ -59,4 +59,15 @@ function initialize()
     });
 }
 
+pavo.on("restart", function(){
+
+    /*
+     * The electron app will quit when all BrowserWindow's are closed
+     * This is the case during a pavo restart, therefore one quit attempt is expected and prevented
+     */
+    app.once("will-quit", function(_event){
+        _event.preventDefault();
+    });
+});
+
 app.on("ready", initialize);

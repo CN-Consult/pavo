@@ -26,6 +26,31 @@ class WindowManager
         this.windows = [];
     }
 
+    /**
+     * Destroys this WindowManager.
+     *
+     * @return {Promise} The promise that destroys this WindowManager
+     */
+    destroy()
+    {
+        let numberOfWindows = this.windows.length;
+        let numberOfDestroyedWindows = 0;
+
+        let self = this;
+        return new Promise(function(_resolve){
+            if (numberOfWindows === 0) _resolve("No windows to destroy");
+            else
+            {
+                self.windows.forEach(function(_window){
+                    _window.destroy().then(function(){
+                        numberOfDestroyedWindows++;
+                        if (numberOfDestroyedWindows === numberOfWindows) _resolve("WindowManager destroyed");
+                    });
+                });
+            }
+        });
+    }
+
 
     // Getters and setters
 
@@ -77,12 +102,17 @@ class WindowManager
 
         let self = this;
         return new Promise(function(_resolve){
-            self.windows.forEach(function(_window){
-                _window.startPageSwitchLoop().then(function(){
-                    numberOfStartedPageSwitchLoops++;
-                    if (numberOfStartedPageSwitchLoops === numberOfWindows) _resolve("Page switch loops started");
+
+            if (numberOfWindows === 0) _resolve("No page switch loops to start");
+            else
+            {
+                self.windows.forEach(function(_window){
+                    _window.startPageSwitchLoop().then(function(){
+                        numberOfStartedPageSwitchLoops++;
+                        if (numberOfStartedPageSwitchLoops === numberOfWindows) _resolve("Page switch loops started");
+                    });
                 });
-            });
+            }
         });
     }
 

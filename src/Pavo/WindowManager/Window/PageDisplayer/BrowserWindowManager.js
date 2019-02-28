@@ -42,6 +42,29 @@ class BrowserWindowManager
         this.webContentsDataInjector.attachToWebContents(this.browserWindow.webContents);
     }
 
+    /**
+     * Destroys the page browser views and the browser window of this BrowserWindowManager.
+     *
+     * @return {Promise} The promise that destroys this BrowserWindowManager
+     */
+    destroy()
+    {
+        // Destroy the browser views
+        this.pageBrowserViews.forEach(function(_pageBrowserView){
+            _pageBrowserView.destroy();
+        });
+
+        // Destroy the browser window
+        let self = this;
+        return new Promise(function(_resolve){
+
+            self.browserWindow.on("closed", function(){
+                _resolve("BrowserWindowManager destroyed");
+            });
+            self.browserWindow.destroy();
+        });
+    }
+
 
     // Getters and Setters
 

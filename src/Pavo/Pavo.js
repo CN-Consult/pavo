@@ -4,6 +4,7 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const EventEmitter = require("events");
 const JsonLoader = require(__dirname + "/../Util/JsonLoader");
 const PavoApi = require(__dirname + "/PavoApi");
 const WindowManager = require(__dirname + "/WindowManager/WindowManager");
@@ -17,14 +18,14 @@ const WindowManager = require(__dirname + "/WindowManager/WindowManager");
  * @property {WindowManager} windowManager The window manager that creates and manages the windows based on the loaded configuration
  * @property {PavoApi} api The pavo api
  */
-class Pavo
+class Pavo extends EventEmitter
 {
     /**
      * Pavo constructor.
      */
     constructor()
     {
-        this.isInitialized = false;
+        super();
         this.api = new PavoApi(this);
     }
 
@@ -100,6 +101,8 @@ class Pavo
      * @param {String} _configDirectoryPath The path to the config directory
      *
      * @return {Promise} The promise that initializes the pavo app
+     *
+     * @emits The "initialized" event when the initialization is finished
      */
     initialize(_configDirectoryPath)
     {
@@ -114,7 +117,31 @@ class Pavo
             self.windowManager.initialize(self.loadedConfiguration.windows).then(function(){
                 self.windowManager.startPageSwitchLoops().then(function(){
                     self.startTimestamp = Date.now();
+                    self.emit("initialized");
                     _resolve("Pavo initialized.");
+                });
+            });
+        });
+    }
+
+    /**
+     * Restarts this Pavo.
+     *
+     * @emits The "restart" event when this method is called
+     */
+    restart()
+    {
+        this.emit("restart");
+        delete this.startTimestamp;
+
+        let self = this;
+        return new Promise(function(_resolve){
+
+            self.windowManager.destroy().then(function(){
+                delete self.windowManager;
+
+                self.initialize(self.configDirectoryPath).then(function(){
+                    _resolve("Pavo restarted");
                 });
             });
         });

@@ -23,7 +23,7 @@ class PavoController extends BaseApiController
      */
     constructor(_parentPavoApi)
     {
-        super(_parentPavoApi, ["getLoadedConfiguration", "setConfiguration", "getPavoStatus"]);
+        super(_parentPavoApi, ["getLoadedConfiguration", "setConfiguration", "getPavoStatus", "restartPavo"]);
     }
 
 
@@ -90,6 +90,15 @@ class PavoController extends BaseApiController
         return {
             startTimestamp: startTimestamp.toString()
         };
+    }
+
+    /**
+     * Restarts the pavo app.
+     */
+    restartPavo()
+    {
+        this.logger.info("Received restart pavo request");
+        this.parentPavoApi.getParentPavo().restart();
     }
 }
 
