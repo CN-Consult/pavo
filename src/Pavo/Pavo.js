@@ -11,7 +11,7 @@ const WindowManager = require(__dirname + "/WindowManager/WindowManager");
 /**
  * Wrapper class for the pavo app.
  *
- * @property {boolean} isInitialized Defines whether the initialize() method was completed at least once
+ * @property {int} startTimestamp The timestamp when the initialize method was completed
  * @property {String} configDirectoryPath The path to the config directory from which the config.json, css and js files will be loaded
  * @property {Object} loadedConfiguration The currently loaded configuration
  * @property {WindowManager} windowManager The window manager that creates and manages the windows based on the loaded configuration
@@ -32,13 +32,13 @@ class Pavo
     // Getters and Setters
 
     /**
-     * Returns whether the initialize() method was completed at least once.
+     * Returns the start timestamp.
      *
-     * @returns {boolean} True if the initialize() method was completed at least once, false otherwise
+     * @return {int} The start timestamp
      */
-    getIsInitialized()
+    getStartTimestamp()
     {
-        return this.isInitialized;
+        return this.startTimestamp;
     }
 
     /**
@@ -85,6 +85,16 @@ class Pavo
     // Public Methods
 
     /**
+     * Returns whether the initialize() method was completed at least once.
+     *
+     * @return {int|null} The start timestamp if the initialize() method was completed at least once, null otherwise
+     */
+    getIsInitialized()
+    {
+        return this.startTimestamp;
+    }
+
+    /**
      * Initializes the pavo app with a specific app configuration.
      *
      * @param {String} _configDirectoryPath The path to the config directory
@@ -103,7 +113,7 @@ class Pavo
         return new Promise(function(_resolve){
             self.windowManager.initialize(self.loadedConfiguration.windows).then(function(){
                 self.windowManager.startPageSwitchLoops().then(function(){
-                    self.isInitialized = true;
+                    self.startTimestamp = Date.now();
                     _resolve("Pavo initialized.");
                 });
             });

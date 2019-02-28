@@ -60,27 +60,33 @@
 
         </div>
 
+        {# Container for the pavo status informations #}
+        <div id="pavo-status">
+            <h2>Status</h2>
+
+            <div id="pavo-status-data" class="whiteRoundedRectangle">
+                <p>Letzter Startzeitpunkt: {{ pavoStatus.startTimestamp }}</p>
+            </div>
+        </div>
+
+        {# Container for the pavo administration #}
         <div id="pavo-overview">
+            <h2>Verwaltung</h2>
 
-            <section id="pavo-configuration-edit">
-
-                <h2>Administration</h2>
-
-                <div id="configuration-buttons" class="whiteRoundedRectangle">
-                    <button class="btn btn-primary" id="edit-pavo-config">
-                        <i class="fas fa-pen"></i> Pavo Konfiguration bearbeiten
-                    </button>
-                </div>
-            </section>
-
-            <div id="dialog-json-editor" title="Konfiguration bearbeiten">
-                <div id="json-editor"></div>
+            <div id="configuration-buttons" class="whiteRoundedRectangle">
+                <button class="btn btn-primary" id="edit-pavo-config">
+                    <i class="fas fa-pen"></i> Pavo Konfiguration bearbeiten
+                </button>
             </div>
-            <div id="dialog-confirm-configuration-save" title="Konfiguration speichern?">
-                <p><i class="fas fa-exclamation-triangle"></i> Die aktuelle Konfiguration wird überschrieben. Fortfahren?</p>
-                <p><i class="fas fa-info-circle"></i> Die neue Konfiguration wird erst beim nächsten Neustart der Anwendung übernommen</p>
-            </div>
+        </div>
 
+        {# Dialogs #}
+        <div id="dialog-json-editor" title="Konfiguration bearbeiten">
+            <div id="json-editor"></div>
+        </div>
+        <div id="dialog-confirm-configuration-save" title="Konfiguration speichern?">
+            <p><i class="fas fa-exclamation-triangle"></i> Die aktuelle Konfiguration wird überschrieben. Fortfahren?</p>
+            <p><i class="fas fa-info-circle"></i> Die neue Konfiguration wird erst beim nächsten Neustart der Anwendung übernommen</p>
         </div>
 
     </main>

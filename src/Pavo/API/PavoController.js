@@ -23,7 +23,7 @@ class PavoController extends BaseApiController
      */
     constructor(_parentPavoApi)
     {
-        super(_parentPavoApi, ["getLoadedConfiguration", "setConfiguration"]);
+        super(_parentPavoApi, ["getLoadedConfiguration", "setConfiguration", "getPavoStatus"]);
     }
 
 
@@ -77,6 +77,19 @@ class PavoController extends BaseApiController
                 fs.writeFileSync(configFilePath, JSON.stringify(_configuration));
             }
         });
+    }
+
+    /**
+     * Returns a object that contains status information about the pavo app.
+     *
+     * @return {object} The object that contains status information
+     */
+    getPavoStatus()
+    {
+        let startTimestamp = new Date(this.parentPavoApi.getParentPavo().getStartTimestamp());
+        return {
+            startTimestamp: startTimestamp.toString()
+        };
     }
 }
 

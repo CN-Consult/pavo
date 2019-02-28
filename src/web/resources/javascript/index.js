@@ -26,7 +26,7 @@ $(document).ready(function() {
     $("form#load-url-form").on("submit", loadUrlIntoWindow);
     $("button#reload-window").on("click", reloadWindows);
     $("div.window-configuration table.page-list tr.defined-page").on("click", switchToPage);
-    $("div#pavo-overview section#pavo-configuration-edit button#edit-pavo-config").on("click", showJsonEditor);
+    $("div#pavo-overview button#edit-pavo-config").on("click", showJsonEditor);
 
     socket.on("pageSwitchLoopStatusUpdate", handlePageSwitchLoopStatusUpdate);
     socket.on("customUrlLoad", handleCustomUrlLoad);

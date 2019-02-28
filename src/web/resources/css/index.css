@@ -52,8 +52,6 @@ main {
 
     /* Setting the padding to the same value as the footers height to display the main content above the footer */
     padding-bottom: 36px;
-
-    /* TODO: min width */
 }
 footer {
     position: fixed;
@@ -63,6 +61,9 @@ footer {
 }
 footer p {
     font-size: 13px;
+}
+header, main, footer {
+    min-width: 1050px;
 }
 
 
@@ -187,4 +188,10 @@ div#json-editor h3 {
 div#dialog-json-editor, div#dialog-confirm-configuration-save {
     /* Hide the content of the dialogs until the dialog is initialized */
     visibility: hidden;
+}
+
+div#pavo-status-data {
+    width: 1000px;
+    margin: 0 auto;
+    padding: 0 10px;
 }

@@ -24,6 +24,8 @@ class IndexController extends BaseController
     respond(_request, _response)
     {
         let getWindowsStatusPromise = this.pavoApi.getWindowsStatus();
+        let pavoStatus = this.pavoApi.getPavoStatus();
+
         if (typeof getWindowsStatusPromise === "string")
         {
             getWindowsStatusPromise = new Promise(function(_resolve){
@@ -36,7 +38,8 @@ class IndexController extends BaseController
 
             _response.render("index.njk", {
                 dashboardName: os.hostname(),
-                windowsStatus: _windowsStatus
+                windowsStatus: _windowsStatus,
+                pavoStatus: pavoStatus
             });
         });
     }

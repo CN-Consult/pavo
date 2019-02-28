@@ -11,8 +11,6 @@ const autoLoginLogger = require("log4js").getLogger("autoLogin");
  * Automatic login for pages.
  * This currently only works for pages where the complete login form is shown on one page and the page is automatically redirected to the target page.
  *
- * TODO: Abstract class for AutomaticLogins and sub classes for "single page", "wait for password field", "reload for password field"
- *
  * @property {String} loginUrl The URL to the login page
  * @property {String} form The form CSS selector
  * @property {String} nameField The name field CSS selector relative from the form
