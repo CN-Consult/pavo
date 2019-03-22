@@ -78,7 +78,7 @@ class WindowManagerController extends BaseApiController
                         }
 
                         numberOfProcessedWindows++;
-                        if (numberOfProcessedWindows === numberOfWindows - 1) _resolve(windowsStatus);
+                        if (numberOfProcessedWindows === numberOfWindows) _resolve(windowsStatus);
                     }
                 }
             });
