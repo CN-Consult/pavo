@@ -256,25 +256,23 @@ class Window
         // Set the position
         if (this.configuration.fullscreen)
         {
-            if (os.platform() === "linux")
-            {
-                if (! this.configuration.position.y) this.configuration.position.y = 0;
+            if (! this.configuration.position.y) this.configuration.position.y = 0;
 
-                let { screen } = require("electron");
+            let { screen } = require("electron");
 
-                // Find the display that contains the start coordinate
-                let display = screen.getDisplayNearestPoint({
-                    x: this.configuration.position.x,
-                    y: this.configuration.position.y
-                });
+            // Find the display that contains the start coordinate
+            let display = screen.getDisplayNearestPoint({
+                x: this.configuration.position.x,
+                y: this.configuration.position.y
+            });
 
-                // Set the browser window dimensions to the displays dimensions
-                browserWindowConfiguration.x = display.bounds.x;
-                browserWindowConfiguration.y = display.bounds.y;
-                browserWindowConfiguration.width = display.bounds.width;
-                browserWindowConfiguration.height = display.bounds.height;
-            }
-            else browserWindowConfiguration.fullscreen = true;
+            // Set the browser window dimensions to the displays dimensions
+            browserWindowConfiguration.x = display.bounds.x;
+            browserWindowConfiguration.y = display.bounds.y;
+            browserWindowConfiguration.width = display.bounds.width;
+            browserWindowConfiguration.height = display.bounds.height;
+
+            if (os.platform() !== "linux") browserWindowConfiguration.fullscreen = true;
         }
         else
         {

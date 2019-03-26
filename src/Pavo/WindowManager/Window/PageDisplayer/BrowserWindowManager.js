@@ -93,12 +93,6 @@ class BrowserWindowManager
         let browserView = new BrowserView({
             webPreferences: this.browserWindowConfiguration.webPreferences
         });
-        browserView.setBounds({
-            x: 0,
-            y: 0,
-            width: this.browserWindowConfiguration.width,
-            height: this.browserWindowConfiguration.height
-        });
 
         if (_page.id === 0) this.browserWindow.setBrowserView(browserView);
 
@@ -123,6 +117,12 @@ class BrowserWindowManager
     {
         let nextBrowserView = this.getBrowserViewForPage(_page);
         this.browserWindow.setBrowserView(nextBrowserView);
+        nextBrowserView.setBounds({
+            x: 0,
+            y: 0,
+            width: this.browserWindowConfiguration.width,
+            height: this.browserWindowConfiguration.height
+        });
         this.currentPage = _page;
     }
 
