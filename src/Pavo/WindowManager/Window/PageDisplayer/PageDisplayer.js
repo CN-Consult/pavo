@@ -137,7 +137,7 @@ class PageDisplayer extends EventEmitter
                 _reject("Page not set");
             });
         }
-        else if (_page === this.currentPage)
+        else if (_page === this.browserWindowManager.getCurrentPage())
         {
             return new Promise(function(_resolve){
                 _resolve("No page switch necessary");
