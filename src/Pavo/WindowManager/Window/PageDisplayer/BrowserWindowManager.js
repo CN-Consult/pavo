@@ -5,6 +5,7 @@
  */
 
 const { BrowserWindow, BrowserView } = require("electron");
+const os = require("os");
 const WebContentsDataInjector = require(__dirname + "/../WebContentsDataInjector");
 
 /**
@@ -243,6 +244,16 @@ class BrowserWindowManager
                 height: this.browserWindowConfiguration.height,
                 width: this.browserWindowConfiguration.width
             });
+        }
+
+        if (os.platform() === "darwin")
+        {
+            /*
+             * With these settings the BrowserWindow can overlay the dock at the bottom of the screen.
+             * However the menu bar at the top must be hidden via the system settings in order for the BrowserWindow
+             * to use the full screen height.
+             */
+            browserWindow.setAlwaysOnTop(true, "screen-saver", -1);
         }
 
         return browserWindow;
