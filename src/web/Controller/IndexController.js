@@ -38,6 +38,7 @@ class IndexController extends BaseController
 
             _response.render("index.njk", {
                 dashboardName: os.hostname(),
+                pavoVersionIdentifier: process.env.npm_package_version,
                 windowsStatus: _windowsStatus,
                 pavoStatus: pavoStatus
             });

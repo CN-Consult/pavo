@@ -1,6 +1,6 @@
 {
   "name": "pavo",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Displays different websites on dashboards",
   "main": "main.js",
   "scripts": {
