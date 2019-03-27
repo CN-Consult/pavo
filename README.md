@@ -32,16 +32,33 @@ Note: You also have to run "npm install" on the host system because the web serv
 Kill Process
 ------------
 
-### Executable File ###
+### Linux ###
+
+#### Executable File ####
 
 * ps ax | grep pavo
 * Find "/tmp/.mount_pavo-\<random>/pavo" and remember the process id at the start of that line
 * kill \<process id>
 
-### Development environment ###
+#### Development environment ####
 
 * ps ax | grep electron
-* Find "node /home/vagrant/project/node_modules/.bin/electron . --disable-renderer-backgrounding"
+* Find "node /home/vagrant/project/node_modules/.bin/electron ."
+* kill \<process id>
+
+
+### macOS ###
+
+#### Executable File ####
+
+* ps ax | grep pavo
+* Find "/Applications/pavo.app/Contents/MacOS/pavo" and remember the process id at the start of that line
+* kill \<process id>
+
+#### Development environment ####
+
+* ps ax | grep electron
+* Find "node /Users/dashboardclient/Desktop/pavo-feature-extend-web-interface-functionality/node_modules/.bin/electron ."
 * kill \<process id>
 
 
