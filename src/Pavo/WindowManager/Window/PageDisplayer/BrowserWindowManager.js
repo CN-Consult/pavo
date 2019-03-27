@@ -95,13 +95,17 @@ class BrowserWindowManager
             webPreferences: this.browserWindowConfiguration.webPreferences
         });
 
-        if (_page.id === 0) this.browserWindow.setBrowserView(browserView);
+        this.pageBrowserViews[_page.getId()] = browserView;
+
+        /*
+         * Show all pages once on initialization to avoid first time rendering of the BrowserView's during the first
+         * cycle of the page switch loop.
+         */
+        this.showPage(_page);
 
         let self = this;
         return new Promise(function(_resolve){
             _page.attachToWebContents(browserView.webContents).then(function(){
-                self.pageBrowserViews[_page.getId()] = browserView;
-
                 // Resolve with the number of page browser windows
                 _resolve(Object.keys(self.pageBrowserViews).length);
             });

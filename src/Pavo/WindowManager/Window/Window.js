@@ -272,7 +272,17 @@ class Window
             browserWindowConfiguration.width = display.bounds.width;
             browserWindowConfiguration.height = display.bounds.height;
 
-            if (os.platform() !== "linux") browserWindowConfiguration.fullscreen = true;
+            if (os.platform() !== "linux" && os.platform() !== "darwin")
+            {
+                /*
+                 * In Linux there is no difference between using fullscreen windows or a window that covers the whole screen
+                 *
+                 * In macOS Mojave there is a bug when restarting pavo when using fullscreen.
+                 * When pavo is restarted macOS jumps from the virtual fullscreen desktop to the real desktop and
+                 * renders the fullscreen window there (behind the dock and the menu bar)
+                 */
+                browserWindowConfiguration.fullscreen = true;
+            }
         }
         else
         {

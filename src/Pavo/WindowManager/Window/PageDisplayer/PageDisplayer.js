@@ -115,6 +115,8 @@ class PageDisplayer extends EventEmitter
         let self = this;
         return new Promise(function(_resolve){
             self.initializePages(_pageList).then(function(){
+                self.showPage(_pageList.getPage(0), false);
+
                 if (_pageList.containsReloadPages()) self.pageReloadLoop = new PageReloadLoop(self.browserWindowManager);
                 _resolve("PageDisplayer initialized");
             });
