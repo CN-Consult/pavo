@@ -294,6 +294,18 @@ class Window
             browserWindowConfiguration.focusable = false;
         }
 
+        if (os.platform() === "darwin" && browserWindowConfiguration.fullscreen !== true)
+        {
+            /*
+             * By setting the titleBarStyle to "customButtonsOnHover" three issues with non fullscreen pavo windows are fixed:
+             *
+             * 1) In macOS Mojave the white line at the top of the window is removed
+             * 2) The window corners are cornered instead of rounded
+             * 3) The windows can overlay the top bar
+             */
+            browserWindowConfiguration.titleBarStyle = "customButtonsOnHover";
+        }
+
         return browserWindowConfiguration;
     }
 
