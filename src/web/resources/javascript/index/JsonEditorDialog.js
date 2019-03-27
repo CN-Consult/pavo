@@ -5,20 +5,25 @@
  */
 
 /**
- * Handles showing of the "json editor" and the "Really save?" dialogs.
+ * JsonEditorDialog constructor.
+ *
+ * @param {Socket} _socket The socket which is necessary to save the edited configuration
  */
-class JsonEditorDialog
+function JsonEditorDialog(_socket)
 {
-    /**
-     * JsonEditorDialog constructor.
-     *
-     * @param {Socket} _socket The socket which is necessary to save the edited configuration
-     */
-    constructor(_socket)
-    {
-        this.socket = _socket;
-    }
+    this.socket = _socket;
+}
 
+
+/**
+ * Handles showing of the "json editor" and the "Really save?" dialogs.
+ *
+ * @property {Socket} socket The socket which is necessary to save the edited configuration
+ * @property {jQuery} jsonEditorDialogElement The element for the json editor dialog (must contain a "json-editor" sub div)
+ * @property {jQuery} confirmDialogElement The element for the "Really save?" dialog
+ * @property {JSONEditor} editor The JSON Editor
+ */
+JsonEditorDialog.prototype = {
 
     /**
      * Initializes the dialogs and the json editor.
@@ -26,14 +31,14 @@ class JsonEditorDialog
      * @param {jQuery} _jsonEditorDialogElement The element for the json editor dialog (must contain a "json-editor" div)
      * @param {jQuery} _confirmDialogElement The element for the "Really save?" dialog
      */
-    init(_jsonEditorDialogElement, _confirmDialogElement)
+    init: function(_jsonEditorDialogElement, _confirmDialogElement)
     {
         this.jsonEditorDialogElement = _jsonEditorDialogElement;
         this.confirmDialogElement = _confirmDialogElement;
 
         this.initializeDialogs();
         this.initializeJsonEditor();
-    }
+    },
 
 
     /**
@@ -41,19 +46,19 @@ class JsonEditorDialog
      *
      * @param {object} _jsonObject The json object
      */
-    show(_jsonObject)
+    show: function(_jsonObject)
     {
         this.editor.setValue(_jsonObject);
         $(this.jsonEditorDialogElement).dialog("open");
-    }
+    },
 
     /**
      * Shows the "Really save?" confirmation dialog.
      */
-    showConfirmDialog()
+    showConfirmDialog: function()
     {
         $(this.confirmDialogElement).dialog("open");
-    }
+    },
 
 
     // Private Methods
@@ -61,7 +66,7 @@ class JsonEditorDialog
     /**
      * Initializes the "json editor" and the "Really save?" dialogs.
      */
-    initializeDialogs()
+    initializeDialogs: function()
     {
         let showConfirmDialog = this.showConfirmDialog.bind(this);
 
@@ -105,12 +110,12 @@ class JsonEditorDialog
             }
         });
         $(this.confirmDialogElement).css("visibility", "visible");
-    }
+    },
 
     /**
      * Initializes the json editor.
      */
-    initializeJsonEditor()
+    initializeJsonEditor: function()
     {
         // Must edit the default icon lib because it won't work otherwise
         // Creating a custom icon lib is not a option because the icon lib that is defined in the constructor will already
@@ -144,44 +149,15 @@ class JsonEditorDialog
                 }
             );
         });
-    }
+    },
 
     /**
      * Saves the edited json to the config file.
      *
      * @emits The "editConfiguration" event
      */
-    saveEditedJson()
+    saveEditedJson: function()
     {
         this.socket.emit("editConfiguration", this.editor.getValue());
     }
-}
-
-
-/**
- * The socket which is necessary to save the edited configuration
- *
- * @type {Socket} socket
- */
-JsonEditorDialog.socket = null;
-
-/**
- * The element for the json editor dialog (must contain a "json-editor" sub div)
- *
- * @type {jQuery} jsonEditorDialogElement
- */
-JsonEditorDialog.jsonEditorDialogElement = null;
-
-/**
- * The element for the "Really save?" dialog
- *
- * @type {jQuery} confirmDialogElement
- */
-JsonEditorDialog.confirmDialogElement = null;
-
-/**
- * The JSON Editor
- *
- * @type {JSONEditor} editor
- */
-JsonEditorDialog.editor = null;
+};

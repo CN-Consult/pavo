@@ -167,6 +167,7 @@ class WebServer extends EventEmitter
         this.express.use("/font-awesome", express.static(__dirname + "/../../node_modules/@fortawesome/fontawesome-free"));
         this.express.use("/socket.io", express.static(__dirname + "/../../node_modules/socket.io-client/dist"));
         this.express.use("/json-editor", express.static(__dirname + "/../../node_modules/@json-editor/json-editor/dist"));
+        this.express.use("/polyfill.io/Promise", express.static(__dirname + "/../../node_modules/polyfill-library/polyfills/__dist/Promise"));
     }
 
     /**
