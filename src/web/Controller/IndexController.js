@@ -5,6 +5,7 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const { app } = require("electron");
 const os = require("os");
 const BaseController = require(__dirname + "/BaseController");
 
@@ -38,7 +39,7 @@ class IndexController extends BaseController
 
             _response.render("index.njk", {
                 dashboardName: os.hostname(),
-                pavoVersionIdentifier: process.env.npm_package_version,
+                pavoVersionIdentifier: app.getVersion(),
                 windowsStatus: _windowsStatus,
                 pavoStatus: pavoStatus
             });
