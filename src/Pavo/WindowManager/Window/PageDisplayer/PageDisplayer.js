@@ -115,10 +115,10 @@ class PageDisplayer extends EventEmitter
         let self = this;
         return new Promise(function(_resolve){
             self.initializePages(_pageList).then(function(){
-                self.showPage(_pageList.getPage(0), false);
-
-                if (_pageList.containsReloadPages()) self.pageReloadLoop = new PageReloadLoop(self.browserWindowManager);
-                _resolve("PageDisplayer initialized");
+                self.showPage(_pageList.getPage(0), false).then(function(){
+                    if (_pageList.containsReloadPages()) self.pageReloadLoop = new PageReloadLoop(self.browserWindowManager);
+                    _resolve("PageDisplayer initialized");
+                });
             });
         });
     }
@@ -141,6 +141,8 @@ class PageDisplayer extends EventEmitter
         }
         else if (_page === this.browserWindowManager.getCurrentPage())
         {
+            if (_page !== this.currentPage) this.currentPage = _page;
+
             return new Promise(function(_resolve){
                 _resolve("No page switch necessary");
             });
