@@ -314,6 +314,8 @@ class Window
              * 3) The windows can overlay the top bar
              */
             browserWindowConfiguration.titleBarStyle = "customButtonsOnHover";
+
+            browserWindowConfiguration.hasShadow = false;
         }
 
         return browserWindowConfiguration;
