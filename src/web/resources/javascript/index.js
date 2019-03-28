@@ -22,9 +22,9 @@ $(document).ready(function() {
     jsonEditorDialog = new JsonEditorDialog(socket);
     jsonEditorDialog.init($("div#dialog-json-editor"), $("div#dialog-confirm-configuration-save"));
 
-    $("button#toggle-page-switch-loop").on("click", togglePageSwitchLoop);
-    $("form#load-url-form").on("submit", loadUrlIntoWindow);
-    $("button#reload-window").on("click", reloadWindows);
+    $("button.toggle-page-switch-loop").on("click", togglePageSwitchLoop);
+    $("form.load-url-form").on("submit", loadUrlIntoWindow);
+    $("button.reload-window").on("click", reloadWindows);
     $("div.window-configuration table.page-list tr.defined-page").on("click", switchToPage);
     $("div#pavo-overview button#edit-pavo-config").on("click", showJsonEditor);
     $("div#pavo-overview button#restart-pavo").on("click", restartPavo);
@@ -89,7 +89,7 @@ function loadUrlIntoWindow(_event)
     _event.preventDefault();
 
     // Fetch the url from the form
-    let url = $(_event.target).find("input#url").val();
+    let url = $(_event.target).find("input.url").val();
 
     socket.emit("loadURL", { windowIds: [ getWindowIdFromElement(_event.target) ], url: url });
 }
@@ -162,7 +162,7 @@ function handlePageSwitchLoopStatusUpdate(_statusUpdate)
         else circleClassName = "redCircle";
 
         // Update button functionality
-        let togglePageSwitchLoopButton = $(windowConfigurationDiv).find(" table.components button#toggle-page-switch-loop");
+        let togglePageSwitchLoopButton = $(windowConfigurationDiv).find(" table.components button.toggle-page-switch-loop");
 
         togglePageSwitchLoopButton.empty();
         if (resumePageSwitchLoop) togglePageSwitchLoopButton.append($("<i class=\"fas fa-pause\"></i>"));
@@ -182,14 +182,15 @@ function handlePageSwitchLoopStatusUpdate(_statusUpdate)
  */
 function setPageSwitchLoopCircleClass(_windowConfigurationDiv, _circleClassName)
 {
-    let pageSwitchLoopStateCircle =$(_windowConfigurationDiv).find(" p#pageSwitchLoopState");
+    let pageSwitchLoopStateCircle =$(_windowConfigurationDiv).find(" p.pageSwitchLoopState");
 
     if (! pageSwitchLoopStateCircle.hasClass(_circleClassName))
     {
         // Remove all classes from the element except for "circle" and the new circle type class name
+        let allowedClassNames = [ "pageSwitchLoopState", "circle", _circleClassName ];
         let classNames = pageSwitchLoopStateCircle.attr("class").split(/\s+/);
         classNames.forEach(function(_className){
-            if (_className !== "circle" && _className !== _circleClassName) pageSwitchLoopStateCircle.removeClass(_className);
+            if (! allowedClassNames.includes(_className)) pageSwitchLoopStateCircle.removeClass(_className);
         });
 
         pageSwitchLoopStateCircle.addClass(_circleClassName);
@@ -249,7 +250,7 @@ function showRemainingTime(_windowId, _pageId, _numberOfRemainingMilliseconds, _
 {
     timeProgressBars[_windowId].stop();
 
-    timeProgressBars[_windowId].initialize($("div#window-configuration-" + _windowId + " table.page-list tr#page-" + _pageId + " td.remaining-time"), _numberOfRemainingMilliseconds);
+    timeProgressBars[_windowId].initialize($("div#window-configuration-" + _windowId + " table.page-list tr#page-" + _windowId + "-" + _pageId + " td.remaining-time"), _numberOfRemainingMilliseconds);
 
     if (_startCountdown) timeProgressBars[_windowId].start();
     else timeProgressBars[_windowId].initializeCountDownElement();
@@ -301,7 +302,7 @@ function handleCustomUrlLoad(_data)
 function showCustomUrl(_windowId, _url)
 {
     let pageListTable = $("div#window-configuration-" + _windowId + " table.page-list");
-    let customUrlTableRow = $(pageListTable).find("tr#custom-page");
+    let customUrlTableRow = $(pageListTable).find("tr.custom-page");
 
     customUrlTableRow.find("td.page-name").text(_url);
 

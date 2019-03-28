@@ -44,7 +44,7 @@
             {% for pageIndex in range(0, _windowStatus.configuration.pages.length) %}
                 {% set page = _windowStatus.configuration.pages[pageIndex] %}
                 <tr class="defined-page {% if (_windowStatus.currentPage === pageIndex and not _windowStatus.customURL) %}active{% endif %}"
-                        id="page-{{ pageIndex }}"
+                        id="page-{{ _windowIndex }}-{{ pageIndex }}"
                         data-page="{{ pageIndex }}">
 
                     {# Page type (S = Static, R = Reload) #}
@@ -66,7 +66,7 @@
                 </tr>
             {% endfor %}
 
-            <tr id="custom-page" class="custom-page {% if _windowStatus.customURL %}active{% endif %}">
+            <tr class="custom-page {% if _windowStatus.customURL %}active{% endif %}">
 
                 {# Page type (C = Custom) #}
                 <td class="page-type">
@@ -84,12 +84,11 @@
             <tr>
                 <td>Seite wechseln</td>
                 <td>
-                    <p id="pageSwitchLoopState"
-                       class="circle {% if _windowStatus.isPageSwitchLoopActive %}greenCircle{% else %}redCircle{% endif %}">
+                    <p class="pageSwitchLoopState circle {% if _windowStatus.isPageSwitchLoopActive %}greenCircle{% else %}redCircle{% endif %}">
                     </p>
                 </td>
                 <td>
-                    <button class="btn btn-primary" id="toggle-page-switch-loop">
+                    <button class="btn btn-primary toggle-page-switch-loop">
                         {%  if _windowStatus.isPageSwitchLoopActive %}
                             <i class="fas fa-pause"></i>
                         {% else %}
@@ -104,16 +103,16 @@
 
         <h4>Funktionen</h4>
 
-        <form id="load-url-form">
-            <label for="url">URL</label>
-            <input type="text" id="url">
+        <form class="load-url-form">
+            <label for="url-{{ _windowIndex }}">URL</label>
+            <input type="text" class="url" id="url-{{ _windowIndex }}">
 
-            <button class="btn btn-primary" id="load-url" type="submit">
+            <button class="btn btn-primary load-url" type="submit">
                 <i class="far fa-eye"></i> URL anzeigen
             </button>
         </form>
 
-        <button class="btn btn-primary" id="reload-window">
+        <button class="btn btn-primary reload-window">
             <i class="fas fa-redo"></i> Aktuelle Seite neu laden
         </button>
 
