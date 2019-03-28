@@ -253,18 +253,19 @@ class Window
             }
         };
 
+
+        let { screen } = require("electron");
+
+        // Find the display that contains the start coordinate
+        let display = screen.getDisplayNearestPoint({
+            x: this.configuration.position.x,
+            y: this.configuration.position.y
+        });
+
         // Set the position
         if (this.configuration.fullscreen)
         {
             if (! this.configuration.position.y) this.configuration.position.y = 0;
-
-            let { screen } = require("electron");
-
-            // Find the display that contains the start coordinate
-            let display = screen.getDisplayNearestPoint({
-                x: this.configuration.position.x,
-                y: this.configuration.position.y
-            });
 
             // Set the browser window dimensions to the displays dimensions
             browserWindowConfiguration.x = display.bounds.x;
@@ -316,6 +317,14 @@ class Window
             browserWindowConfiguration.titleBarStyle = "customButtonsOnHover";
 
             browserWindowConfiguration.hasShadow = false;
+
+            /*
+             * The BrowserWindow's can only overlay the menu bar and the dock when they take up the full screen height
+             * Therefore the window height is initially set to the full screen height and later restored to the
+             * configured height in order to overlay the bars
+             */
+            browserWindowConfiguration.realHeight = browserWindowConfiguration.height;
+            browserWindowConfiguration.height = display.bounds.height;
         }
 
         return browserWindowConfiguration;

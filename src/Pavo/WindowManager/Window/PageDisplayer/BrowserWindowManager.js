@@ -235,21 +235,6 @@ class BrowserWindowManager
             browserWindow.webContents.session.clearStorageData();
         });
 
-        if (! this.browserWindowConfiguration.fullscreen)
-        {
-            /*
-             * When the browser window is created it replaces the width and height if these values are bigger than the displays "workarea".
-             * The displays workarea subtracts the size of the bars from the real screen size in the Unity desktop environment.
-             * By setting the bounds manually you can bypass the workarea limitations and use up to the real screen sizes height and width.
-             */
-            browserWindow.setBounds({
-                x: this.browserWindowConfiguration.x,
-                y: this.browserWindowConfiguration.y,
-                height: this.browserWindowConfiguration.height,
-                width: this.browserWindowConfiguration.width
-            });
-        }
-
         if (os.platform() === "darwin")
         {
             /*
@@ -258,6 +243,16 @@ class BrowserWindowManager
              * to use the full screen height.
              */
             browserWindow.setAlwaysOnTop(true, "screen-saver", -1);
+
+            this.browserWindowConfiguration.height = this.browserWindowConfiguration.realHeight;
+            delete this.browserWindowConfiguration.realHeight;
+
+            browserWindow.setBounds({
+                x: this.browserWindowConfiguration.x,
+                y: this.browserWindowConfiguration.y,
+                width: this.browserWindowConfiguration.width,
+                height: this.browserWindowConfiguration.height
+            });
         }
 
         return browserWindow;
