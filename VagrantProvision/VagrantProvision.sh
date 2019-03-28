@@ -6,6 +6,7 @@ systemctl stop apt-daily.timer
 systemctl stop apt-daily-upgrade.timer
 
 rm /var/lib/apt/lists/lock
+rm /var/lib/dpkg/list
 
 apt-get clean
 
