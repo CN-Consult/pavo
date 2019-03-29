@@ -18,8 +18,8 @@
     ]
   },
   "author": {
-    "name" : "Yannick Lapp",
-    "email" : "yannick.lapp@cn-consult.eu"
+    "name": "Yannick Lapp",
+    "email": "yannick.lapp@cn-consult.eu"
   },
   "license": "MIT",
   "devDependencies": {
