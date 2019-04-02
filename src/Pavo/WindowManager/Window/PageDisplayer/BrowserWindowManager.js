@@ -246,14 +246,14 @@ class BrowserWindowManager
 
             this.browserWindowConfiguration.height = this.browserWindowConfiguration.realHeight;
             delete this.browserWindowConfiguration.realHeight;
-
-            browserWindow.setBounds({
-                x: this.browserWindowConfiguration.x,
-                y: this.browserWindowConfiguration.y,
-                width: this.browserWindowConfiguration.width,
-                height: this.browserWindowConfiguration.height
-            });
         }
+
+        browserWindow.setBounds({
+            x: this.browserWindowConfiguration.x,
+            y: this.browserWindowConfiguration.y,
+            width: this.browserWindowConfiguration.width,
+            height: this.browserWindowConfiguration.height
+        });
 
         return browserWindow;
     }
