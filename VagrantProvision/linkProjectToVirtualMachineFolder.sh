@@ -47,7 +47,7 @@ do
   done
 
   if [ $fileIsIgnoredFile -eq 0 ]; then
-    ln -fs "/vagrant/$fileName" "/home/vagrant/project/$fileName"
+    ln -rs "/vagrant/$fileName" "/home/vagrant/project/$fileName"
   fi
 
 done

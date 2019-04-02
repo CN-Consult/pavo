@@ -1,14 +1,16 @@
 /**
- * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const pavoApiLogger = require("log4js").getLogger("pavoApi");
+const glob = require("glob");
 
 /**
  * Provides the api methods for the pavo app.
+ *
+ * @property {Pavo} parentPavo The parent pavo app which can be accessed with this PavoApi
+ * @property {BaseApiController[]} controllers The API controllers
  */
 class PavoApi
 {
@@ -20,134 +22,100 @@ class PavoApi
     constructor(_parentPavo)
     {
         this.parentPavo = _parentPavo;
+        this.controllers = [];
+
+        // Create a proxy for this instance that searches the controllers for methods when an unknown member is accessed
+        let proxy = this.generateProxy();
+
+        // Initialize the controllers
+        let pavoControllerFilePaths = glob.sync(__dirname + "/API/*Controller.js", { ignore: [__dirname + "/API/BaseApiController.js"] });
+
+        let self = this;
+        pavoControllerFilePaths.forEach(function(_pavoControllerFilePath){
+            let pavoController = require(_pavoControllerFilePath);
+            self.controllers.push(new pavoController(proxy));
+        });
+
+        return proxy;
     }
 
 
+    // Getters and Setters
+
     /**
-     * Returns the status for each window of the pavo app.
-     * This includes the configuration and whether the tab switch loop is active
+     * Returns the parent pavo of this Pavo API.
      *
-     * @return {Object[]|string} The status of each window of the pavo app or an error message if the pavo app is not initialized yet
+     * @return {Pavo} The parent pavo
      */
-    getWindowsStatus()
+    getParentPavo()
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
+        return this.parentPavo;
+    }
 
-        let windowsStatus = [];
 
-        let windowConfigurations = this.parentPavo.getLoadedConfiguration().windows;
-        let windows = this.parentPavo.getWindowManager().getWindows();
+    // Private Methods
 
-        if (Array.isArray(windowConfigurations))
+    /**
+     * Creates and returns a proxy for this instance that searches this instances controllers for methods when an unknown member is accessed.
+     *
+     * @return {PavoApi} The proxy
+     * @private
+     */
+    generateProxy()
+    {
+        let self = this;
+        return new Proxy(this, {
+            get(_target, _key) {
+                let member = self[_key];
+                if (member) return member;
+                else return self.getReturnValueForUnknownMember(_key);
+            }
+        });
+    }
+
+    /**
+     * Returns a value for an unknown member.
+     *
+     * @param {String} _memberName The name of the member
+     *
+     * @return {function|string} The return value for the member name or an error message if no member with that name exists
+     * @private
+     */
+    getReturnValueForUnknownMember(_memberName)
+    {
+        if (this.parentPavo.getIsInitialized())
         {
-            for (let windowId in windowConfigurations)
-            { // Add the isTabSwitchLoopActive information to the running configuration
-
-                if (windowConfigurations.hasOwnProperty(windowId))
-                {
-                    windowsStatus[windowId] = {};
-                    windowsStatus[windowId].configuration = windowConfigurations[windowId];
-                    windowsStatus[windowId].isTabSwitchLoopActive = windows[windowId].getTabSwitchLoop().getIsActive();
-                }
-            }
+            let method = this.getApiMethodByName(_memberName);
+            if (method) return method;
+            else return "ERROR: Tried to access unknown API member '" + _memberName + "'";
         }
-
-        return windowsStatus;
+        else
+        {
+            return function(){
+                return new Promise(function(_resolve){
+                    _resolve("ERROR: Pavo app not initialized yet")
+                });
+            };
+        }
     }
 
     /**
-     * Halts the tab switch loop for a specified list of window ids.
+     * Returns a method from one of the controllers by its name.
      *
-     * @param {string[]} _windowIds The window ids
+     * @param {String} _methodName The method name
      *
-     * @return {int[]|string} The list of halted tab loop window ids or an error message if the pavo app is not initialized yet
+     * @return {function|null} The method or null if no controller provides a method with that name
+     * @private
      */
-    haltTabSwitchLoopsFor(_windowIds)
+    getApiMethodByName(_methodName)
     {
-        if (! this.parentPavo.getIsInitialized()) return "ERROR: Pavo app not initialized yet";
-
-        pavoApiLogger.info("Received tab switch loop halt request for windows " + JSON.stringify(_windowIds));
-
-        let windows = this.parentPavo.getWindowManager().getWindows();
-        let haltedTabLoopWindowIds = [];
-
-        _windowIds.forEach(function(_windowId){
-            let window = windows[_windowId];
-
-            if (window)
-            {
-                let tabSwitchLoop = window.getTabSwitchLoop();
-                if (tabSwitchLoop.getIsActive())
-                {
-                    pavoApiLogger.info("Halting tab switch loop for window #" + window.getDisplayId());
-                    tabSwitchLoop.halt();
-                    haltedTabLoopWindowIds.push(window.getId());
-                }
-            }
-        });
-
-        return haltedTabLoopWindowIds;
-    }
-
-    /**
-     * Resumes the tab switch loop for a specified list of window ids.
-     *
-     * @param {string[]} _windowIds The list of window ids
-     *
-     * @return {Promise} The promise that returns the list of resumed tab loop window ids or an error message if the pavo app is not initialized yet
-     */
-    resumeTabSwitchLoopsFor(_windowIds)
-    {
-        if (! this.parentPavo.getIsInitialized()) return new Promise(function(_resolve, _reject){
-            _reject("ERROR: Pavo app not initialized yet");
-        });
-
-        pavoApiLogger.info("Received tab switch loop resume request for windows " + JSON.stringify(_windowIds));
-
-        let windows = this.parentPavo.getWindowManager().getWindows();
-        let resumedTabLoopWindowIds = [];
-        let numberOfWindowIds = _windowIds.length;
-        let numberOfResumedTabSwitchLoops = 0;
-
-        return new Promise(function(_resolve){
-            _windowIds.forEach(function(_windowId){
-                let window = windows[_windowId];
-
-                if (window)
-                {
-                    let tabSwitchLoop = window.getTabSwitchLoop();
-                    if (! tabSwitchLoop.getIsActive())
-                    {
-                        pavoApiLogger.info("Resuming tab switch loop for window #" + window.getDisplayId());
-                        tabSwitchLoop.continue().then(function(){
-                            resumedTabLoopWindowIds.push(window.getId());
-                            numberOfResumedTabSwitchLoops++;
-                            if (numberOfWindowIds === numberOfResumedTabSwitchLoops) _resolve(resumedTabLoopWindowIds);
-                        })
-                    }
-                    else
-                    {
-                        numberOfResumedTabSwitchLoops++;
-                        if (numberOfWindowIds === numberOfResumedTabSwitchLoops) _resolve(resumedTabLoopWindowIds);
-                    }
-                }
-                else
-                {
-                    numberOfResumedTabSwitchLoops++;
-                    if (numberOfWindowIds === numberOfResumedTabSwitchLoops) _resolve(resumedTabLoopWindowIds);
-                }
-            });
-        });
+        for (let i = 0; i < this.controllers.length; i++)
+        {
+            let method = this.controllers[i].getProvidedMethodByName(_methodName);
+            if (method) return method;
+        }
     }
 }
-
-
-/**
- * The parent pavo app which can be accessed with this pavo api
- *
- * @type {Pavo} parentPavo
- */
-PavoApi.parentPavo = null;
 
 
 module.exports = PavoApi;

@@ -1,36 +1,65 @@
 /**
- * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const EventEmitter = require("events");
+const JsonLoader = require(__dirname + "/../Util/JsonLoader");
+const PavoApi = require(__dirname + "/PavoApi");
 const WindowManager = require(__dirname + "/WindowManager/WindowManager");
 
 /**
- * Wrapper class for the Pavo app.
+ * Wrapper class for the pavo app.
+ *
+ * @property {int} startTimestamp The timestamp when the initialize method was completed
+ * @property {String} configDirectoryPath The path to the config directory from which the config.json, css and js files will be loaded
+ * @property {Object} loadedConfiguration The currently loaded configuration
+ * @property {WindowManager} windowManager The window manager that creates and manages the windows based on the loaded configuration
+ * @property {PavoApi} api The pavo api
  */
-class Pavo
+class Pavo extends EventEmitter
 {
     /**
      * Pavo constructor.
      */
     constructor()
     {
-        this.isInitialized = false;
+        super();
+        this.api = new PavoApi(this);
     }
 
 
     // Getters and Setters
 
     /**
-     * Returns whether the initialize() method was completed at least once.
+     * Returns the start timestamp.
      *
-     * @returns {boolean} True if the initialize() method was completed at least once, false otherwise
+     * @return {int} The start timestamp
      */
-    getIsInitialized()
+    getStartTimestamp()
     {
-        return this.isInitialized;
+        return this.startTimestamp;
+    }
+
+    /**
+     * Returns the config directory path.
+     *
+     * @return {String} The config directory path
+     */
+    getConfigDirectoryPath()
+    {
+        return this.configDirectoryPath;
+    }
+
+    /**
+     * Returns the API for this pavo.
+     *
+     * @return {PavoApi} The API for this pavo
+     */
+    getApi()
+    {
+        return this.api;
     }
 
     /**
@@ -57,52 +86,67 @@ class Pavo
     // Public Methods
 
     /**
+     * Returns whether the initialize() method was completed at least once.
+     *
+     * @return {int|null} The start timestamp if the initialize() method was completed at least once, null otherwise
+     */
+    getIsInitialized()
+    {
+        return this.startTimestamp;
+    }
+
+    /**
      * Initializes the pavo app with a specific app configuration.
      *
-     * @param {Object} _pavoConfiguration The pavo configuration
+     * @param {String} _configDirectoryPath The path to the config directory
      *
      * @return {Promise} The promise that initializes the pavo app
+     *
+     * @emits The "initialized" event when the initialization is finished
      */
-    initialize(_pavoConfiguration)
+    initialize(_configDirectoryPath)
     {
-        this.loadedConfiguration = _pavoConfiguration;
+        this.configDirectoryPath = _configDirectoryPath;
+        this.loadedConfiguration = JsonLoader.getJson(this.configDirectoryPath + "/config.json");
 
         // Initialize the window manager
-        this.windowManager = new WindowManager();
+        this.windowManager = new WindowManager(this);
 
         let self = this;
         return new Promise(function(_resolve){
             self.windowManager.initialize(self.loadedConfiguration.windows).then(function(){
-                self.windowManager.startTabSwitchLoops().then(function(){
-                    self.isInitialized = true;
+                self.windowManager.startPageSwitchLoops().then(function(){
+                    self.startTimestamp = Date.now();
+                    self.emit("initialized");
                     _resolve("Pavo initialized.");
                 });
             });
         });
     }
+
+    /**
+     * Restarts this Pavo.
+     *
+     * @emits The "restart" event when this method is called
+     */
+    restart()
+    {
+        this.emit("restart");
+        delete this.startTimestamp;
+
+        let self = this;
+        return new Promise(function(_resolve){
+
+            self.windowManager.destroy().then(function(){
+                delete self.windowManager;
+
+                self.initialize(self.configDirectoryPath).then(function(){
+                    _resolve("Pavo restarted");
+                });
+            });
+        });
+    }
 }
-
-
-/**
- * Defines whether the initialize() method was completed at least once
- *
- * @type {boolean} isInitialized
- */
-Pavo.isInitialized = false;
-
-/**
- * The currently loaded pavo configuration
- *
- * @type {Object} loadedConfiguration
- */
-Pavo.loadedConfiguration = null;
-
-/**
- * The window manager that creates and manages the pavo windows based on the loaded configuration
- *
- * @type {WindowManager} windowManager
- */
-Pavo.windowManager = null;
 
 
 module.exports = Pavo;

@@ -19,7 +19,7 @@ class JsonLoader
      *
      * @returns {Object} The parsed content of the config file
      */
-    getJson(_filePath)
+    static getJson(_filePath)
     {
         let configFileContent = fs.readFileSync(_filePath);
 

@@ -1,0 +1,43 @@
+{
+  "tags": {
+    "allowUnknownTags": false
+  },
+  "source": {
+    "include": "src",
+    "includePattern": ".js$",
+    "excludePattern": "(node_modules|docs|web)"
+  },
+  "plugins": [
+    "plugins/markdown"
+  ],
+
+  "opts": {
+    "template": "node_modules/docdash",
+    "recurse": true,
+    "private": true,
+    "destination": "docs/",
+    "verbose": true
+  },
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false
+  },
+
+  "docdash": {
+    "static": true,
+    "sort": false,
+    "sectionOrder": [
+      "Namespaces",
+      "Classes",
+      "Modules",
+      "Externals",
+      "Events",
+      "Mixins",
+      "Tutorials",
+      "Interfaces"
+    ],
+    "search": true,
+    "collapse": true,
+    "wrap": true
+  }
+}

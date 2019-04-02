@@ -1,40 +1,69 @@
 /**
- * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2018-2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const electron = require("electron");
 const os = require("os");
 const ObjectMerger = require(__dirname + "/../../../Util/ObjectMerger");
-const Tab = require(__dirname + "/TabList/Tab");
-const TabList = require(__dirname + "/TabList/TabList");
-const TabDisplayer = require(__dirname + "/TabDisplayer/TabDisplayer");
-const TabSwitchLoop = require(__dirname + "/TabSwitchLoop");
+const Page = require(__dirname + "/PageList/Page");
+const PageList = require(__dirname + "/PageList/PageList");
+const PageDisplayer = require(__dirname + "/PageDisplayer/PageDisplayer");
+const PageSwitchLoop = require(__dirname + "/PageSwitchLoop");
 const windowLogger = require("log4js").getLogger("window");
 
 /**
- * Creates and stores the tabs and the configuration of a single window.
+ * Creates and stores the pages and the configuration of a single window.
+ *
+ * @property {WindowManager} parentWindowManager The parent window manager
+ * @property {int} id The window id
+ * @property {int} displayId The id that will be displayed in the logs and in the user interface
+ * @property {Object} configuration The loaded window configuration
+ * @property {ObjectMerger} objectMerger The object merger
+ * @property {PageDisplayer} pageDisplayer The page displayer
+ * @property {PageSwitchLoop} pageSwitchLoop The page switch loop
  */
 class Window
 {
     /**
      * Window constructor.
      *
+     * @param {WindowManager} _parentWindowManager The parent window manager
      * @param {int} _id The id of this window
      */
-    constructor(_id)
+    constructor(_parentWindowManager, _id)
     {
+        this.parentWindowManager = _parentWindowManager;
         this.id = _id;
         this.displayId = _id + 1;
         this.objectMerger = new ObjectMerger();
-        this.tabDisplayer = new TabDisplayer();
-        this.tabSwitchLoop = new TabSwitchLoop(this.tabDisplayer);
+        this.pageDisplayer = new PageDisplayer(this);
+        this.pageSwitchLoop = new PageSwitchLoop(this.pageDisplayer);
+    }
+
+    /**
+     * Destroys this Window.
+     *
+     * @return {Promise} The promise that destroys this Window
+     */
+    destroy()
+    {
+        this.pageSwitchLoop.halt();
+        return this.pageDisplayer.destroy();
     }
 
 
     // Getters and Setters
+
+    /**
+     * Returns the parent window manager.
+     *
+     * @return {WindowManager} The parent window manager
+     */
+    getParentWindowManager()
+    {
+        return this.parentWindowManager;
+    }
 
     /**
      * Returns the window id.
@@ -49,7 +78,7 @@ class Window
     /**
      * Returns the display id of this window.
      *
-     * @returns {int} The display id of this window
+     * @return {int} The display id of this window
      */
     getDisplayId()
     {
@@ -57,30 +86,30 @@ class Window
     }
 
     /**
-     * Returns the tab manager.
+     * Returns the page displayer.
      *
-     * @return {TabDisplayer} The tab displayer
+     * @return {PageDisplayer} The page displayer
      */
-    getTabDisplayer()
+    getPageDisplayer()
     {
-        return this.tabDisplayer;
+        return this.pageDisplayer;
     }
 
     /**
-     * Returns the tab switch loop
+     * Returns the page switch loop
      *
-     * @return {TabSwitchLoop} The tab switch loop
+     * @return {PageSwitchLoop} The page switch loop
      */
-    getTabSwitchLoop()
+    getPageSwitchLoop()
     {
-        return this.tabSwitchLoop;
+        return this.pageSwitchLoop;
     }
 
 
     // Public Methods
 
     /**
-     * Initializes the tabs for the currently loaded window configuration.
+     * Initializes the pages for the currently loaded window configuration.
      *
      * @param {Object} _windowConfiguration The window configuration
      */
@@ -93,13 +122,12 @@ class Window
         // Generate the browser window configuration
         let browserWindowConfiguration = this.getBrowserWindowConfiguration();
 
-        // Initialize the tabs
+        // Initialize the pages
         let self = this;
         return new Promise(function(_resolve){
-            self.initializeTabs(browserWindowConfiguration).then(function(_tabList){
-
-                self.tabDisplayer.initialize(browserWindowConfiguration, _tabList).then(function(){
-                    self.tabSwitchLoop.initialize(self.tabDisplayer);
+            self.initializePages(browserWindowConfiguration).then(function(_pageList){
+                self.pageDisplayer.initialize(browserWindowConfiguration, _windowConfiguration.pageDefaults, _pageList).then(function(){
+                    self.pageSwitchLoop.initialize(self.pageDisplayer);
                     windowLogger.debug("Window #" + self.displayId + " initialized.");
                     _resolve("Window initialized");
                 });
@@ -108,29 +136,29 @@ class Window
     }
 
     /**
-     * Reloads the tabs that need a login that was already done in another tab.
+     * Reloads the pages that are configured to be reloaded after app initialization.
      *
-     * @return {Promise} The promise that reloads the tabs that need a login that was already done in another tab
+     * @return {Promise} The promise that reloads the pages that are configured to be reloaded after app initialization
      */
-    reloadSecondaryLoginTabs()
+    reloadPagesAfterAppInitialization()
     {
         let self = this;
-        let reloadAfterAppInitTabs = this.tabDisplayer.getTabList().getReloadAfterAppInitTabs();
-        let numberOfReloadAfterAppInitTabs = reloadAfterAppInitTabs.length;
-        let numberOfReloadedTabs = 0;
+        let reloadAfterAppInitPages = this.pageDisplayer.getPageList().getReloadAfterAppInitPages();
+        let numberOfReloadAfterAppInitPages = reloadAfterAppInitPages.length;
+        let numberOfReloadedPages = 0;
 
         return new Promise(function(_resolve){
 
-            if (numberOfReloadAfterAppInitTabs === 0) _resolve("No secondary tabs to reload.");
+            if (numberOfReloadAfterAppInitPages === 0) _resolve("No pages to reload after app initialization.");
             else
             {
-                reloadAfterAppInitTabs.forEach(function(_tab){
+                reloadAfterAppInitPages.forEach(function(_page){
 
-                    self.tabDisplayer.reloadStaticTab(_tab).then(function(){
-                        numberOfReloadedTabs++;
-                        if (numberOfReloadedTabs === numberOfReloadAfterAppInitTabs)
+                    self.pageDisplayer.reloadPage(_page).then(function(){
+                        numberOfReloadedPages++;
+                        if (numberOfReloadedPages === numberOfReloadAfterAppInitPages)
                         {
-                            _resolve("Secondary tabs reloaded.");
+                            _resolve("Pages reloaded after app initialization.");
                         }
                     });
                 });
@@ -139,52 +167,48 @@ class Window
     }
 
     /**
-     * Starts the tab switch loop.
+     * Starts the page switch loop.
      *
-     * @returns {Promise} The promise that starts the tab switch loop
+     * @returns {Promise} The promise that starts the page switch loop
      */
-    startTabSwitchLoop()
+    startPageSwitchLoop()
     {
-        return this.tabSwitchLoop.start();
+        return this.pageSwitchLoop.start();
     }
 
 
     // Private Methods
 
     /**
-     * Initializes the tabs based on the window configuration.
+     * Initializes the pages based on the window configuration.
      *
-     * @param {Object} _browserWindowConfiguration The browser window configuration for each tab
+     * @param {Object} _browserWindowConfiguration The browser window configuration for each page
      *
-     * @returns {Promise} The promise that initializes the tabs
+     * @returns {Promise} The promise that initializes the pages
+     * @private
      */
-    initializeTabs(_browserWindowConfiguration)
+    initializePages(_browserWindowConfiguration)
     {
-        let numberOfTabs = this.configuration.pages.length;
-        let tabListIndex = 0;
-        let tabList = new TabList();
+        let numberOfPages = this.configuration.pages.length;
+        let pageList = new PageList();
 
         let self = this;
         return new Promise(function(_resolve){
-
             self.configuration.pages.forEach(function(_pageSpecificConfiguration){
-
                 let pageConfiguration = self.getPageConfiguration(_pageSpecificConfiguration);
-                let tab = new Tab(self, pageConfiguration, tabListIndex);
+                let page = new Page(self, pageConfiguration, pageList.getCurrentPageIndex() + 1);
 
-                tabList.addTab(tab);
-
-                if (tabListIndex === numberOfTabs - 1) _resolve(tabList);
-                else tabListIndex++;
+                pageList.addPage(page);
+                if (pageList.getCurrentPageIndex() === numberOfPages - 1) _resolve(pageList);
             });
         });
     }
 
     /**
-     * Creates and returns the browser window configuration for this window.
-     * This is done based on the configuration attributes content.
+     * Creates and returns the browser window configuration for this window based on the window configuration.
      *
      * @return {Object} The browser window configuration
+     * @private
      */
     getBrowserWindowConfiguration()
     {
@@ -204,58 +228,103 @@ class Window
             resizable: false,
 
             // Set the background color
-            //TODO: remove this?
             backgroundColor: "#000",
+
+            alwaysOnTop: true,
 
             webPreferences: {
 
                 // The browser windows don't need to be able to open the dev tools
                 devTools: false,
 
-                // Disable node integration for the browser windows because the tabs don't need access to node APIs
-                nodeIntegration: false
+                // Disable node integration for the browser windows because the pages don't need access to node APIs
+                nodeIntegration: false,
+
+                // The "remote" module is not necessary in the BrowserWindow's
+                enableRemoteModule: false,
+
+                textAreasAreResizable: false,
+
+                // Sandbox mode improves the performance of browser windows
+                sandbox: true,
+
+                // Setting the affinity will cause all BrowserWindow's to run in the same renderer process
+                affinity: "pavo"
             }
         };
+
+
+        let { screen } = require("electron");
+
+        // Find the display that contains the start coordinate
+        let display = screen.getDisplayNearestPoint({
+            x: this.configuration.position.x,
+            y: this.configuration.position.y
+        });
 
         // Set the position
         if (this.configuration.fullscreen)
         {
-            if (os.platform() === "linux")
+            if (! this.configuration.position.y) this.configuration.position.y = 0;
+
+            // Set the browser window dimensions to the displays dimensions
+            browserWindowConfiguration.x = display.bounds.x;
+            browserWindowConfiguration.y = display.bounds.y;
+            browserWindowConfiguration.width = display.bounds.width;
+            browserWindowConfiguration.height = display.bounds.height;
+
+            if (os.platform() !== "linux" && os.platform() !== "darwin")
             {
-                if (! this.configuration.position.y) this.configuration.position.y = 0;
-
-                // Find the display that contains the start coordinate
-                let display = electron.screen.getDisplayNearestPoint({
-                    x: this.configuration.position.x,
-                    y: this.configuration.position.y
-                });
-
-                // Set the browser window dimensions to the displays dimensions
-                browserWindowConfiguration["x"] = display.bounds.x;
-                browserWindowConfiguration["y"] = display.bounds.y;
-                browserWindowConfiguration["width"] = display.bounds.width;
-                browserWindowConfiguration["height"] = display.bounds.height;
+                /*
+                 * In Linux there is no difference between using fullscreen windows or a window that covers the whole screen
+                 *
+                 * In macOS Mojave there is a bug when restarting pavo when using fullscreen.
+                 * When pavo is restarted macOS jumps from the virtual fullscreen desktop to the real desktop and
+                 * renders the fullscreen window there (behind the dock and the menu bar)
+                 */
+                browserWindowConfiguration.fullscreen = true;
             }
-            else browserWindowConfiguration["fullscreen"] = true;
         }
         else
         {
-            browserWindowConfiguration["y"] = this.configuration.position.y;
-            browserWindowConfiguration["width"] = this.configuration.position.width;
-            browserWindowConfiguration["height"] = this.configuration.position.height;
+            browserWindowConfiguration.y = this.configuration.position.y;
+            browserWindowConfiguration.width = this.configuration.position.width;
+            browserWindowConfiguration.height = this.configuration.position.height;
         }
 
         // Set the browser window type
         if (os.platform() === "linux")
         {
             /*
-             * By setting the window type to "dock" the window ignores the task bar and top bar in the unity desktop environment.
-             * The top browser window may not have focus because otherwise the bottom line and the shadow of the top bar are visible through the window.
+             * By setting the focusable option to false the window will ignore the window manager in Linux and will stay
+             * on top of everything else.
              *
-             * You could also set the focusable option to false to keep a window on top all time, however you can't change that option during runtime
-             * in Linux and you can't move other windows to the top this way.
+             * An alternative way to achieve this would be to set the window type to "dock". However this does only work
+             * in Ubuntu 16 with the Unity desktop environment and doesn't work in Ubuntu 18 with the GNOME3 desktop environment.
              */
-            browserWindowConfiguration["type"] = "dock";
+            browserWindowConfiguration.focusable = false;
+        }
+
+        if (os.platform() === "darwin" && browserWindowConfiguration.fullscreen !== true)
+        {
+            /*
+             * By setting the titleBarStyle to "customButtonsOnHover" three issues with non fullscreen pavo windows are fixed:
+             *
+             * 1) In macOS Mojave the white line at the top of the window is removed
+             * 2) The window corners are cornered instead of rounded
+             * 3) The windows can overlay the top bar
+             */
+            browserWindowConfiguration.titleBarStyle = "customButtonsOnHover";
+
+            browserWindowConfiguration.hasShadow = false;
+
+            /*
+             * The BrowserWindow's can only overlay the menu bar and the dock when they take up the full screen height
+             * Therefore the window height is initially set to the full screen height and later restored to the
+             * configured height in order to overlay the bars
+             */
+            browserWindowConfiguration.realHeight = browserWindowConfiguration.height;
+            browserWindowConfiguration.height = display.bounds.height;
         }
 
         return browserWindowConfiguration;
@@ -263,60 +332,19 @@ class Window
 
     /**
      * Creates and returns the page configuration.
-     * This is done by merging the page specific and the default page configuration which is loaded from the configuration attributes content.
+     * This is done by merging the page specific and the default page configuration which is loaded from the window configuration.
      *
      * @param {Object} _pageSpecificConfiguration The page specific configuration
      *
      * @returns {Object} The page configuration
+     * @private
      */
     getPageConfiguration(_pageSpecificConfiguration)
     {
         // Merge the page specific and default page configuration while overwriting the default values in case of duplicated keys
-        return this.objectMerger.mergeObjects(this.configuration["pageDefaults"], _pageSpecificConfiguration, true);
+        return this.objectMerger.mergeObjects(this.configuration.pageDefaults, _pageSpecificConfiguration, true);
     }
 }
-
-/**
- * The window id
- *
- * @type {int} id
- */
-Window.id = -1;
-
-/**
- * The id that will be displayed in the logs and in the user interface
- *
- * @type {int} displayId
- */
-Window.displayId = 0;
-
-/**
- * The loaded window configuration
- *
- * @type {Object} configuration
- */
-Window.configuration = null;
-
-/**
- * The object merger
- *
- * @type {ObjectMerger} objectMerger
- */
-Window.objectMerger = null;
-
-/**
- * The tab displayer
- *
- * @type {TabDisplayer} tabDisplayer
- */
-Window.tabDisplayer = null;
-
-/**
- * The tab switch loop
- *
- * @type {TabSwitchLoop} tabSwitchLoop
- */
-Window.tabSwitchLoop = null;
 
 
 module.exports = Window;

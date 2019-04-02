@@ -1,0 +1,160 @@
+{
+  "title": "Pavo Configuration",
+  "type": "object",
+
+  "definitions": {
+
+    "Selector": {
+      "type": "object",
+      "properties": {
+        "selector": {
+          "type": "string",
+          "description": "A CSS selector that targets a single element"
+        },
+        "value": {
+          "type": "string",
+          "description": "The value to set the target elements value to",
+          "optional": true
+        }
+      }
+    },
+
+    "AutoLogin": {
+      "type": "object",
+      "properties": {
+        "loginUrl": {
+          "type": "string",
+          "description": "The URL to the login page on which the login form can be accessed"
+        },
+        "form": {
+          "$ref": "#/definitions/Selector",
+          "description": "The form selector"
+        },
+        "name": {
+          "$ref": "#/definitions/Selector",
+          "description": "The name input field selector relative from the form"
+        },
+        "password": {
+          "$ref": "#/definitions/Selector",
+          "description": "The password input field selector relative from the form"
+        },
+        "redirectsToMainUrl": {
+          "type": "boolean",
+          "description": "Defines whether a redirect to the main URL is expected after a successful login"
+        },
+        "reloadTimeout": {
+          "type": "integer",
+          "description": "The time to wait for a page reload before assuming that the login failed in milliseconds"
+        }
+      }
+    },
+
+    "Page": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "The url to display in the page"
+        },
+        "name": {
+          "type": "string",
+          "description": "A custom name for the page which will show up in the web interface"
+        },
+        "displayTime": {
+          "type": "integer",
+          "description": "The time for which the page will be displayed in seconds"
+        },
+        "reloadTime": {
+          "type": "integer",
+          "description": "The interval in which the time will be reloaded in seconds"
+        },
+        "reloadAfterAppInit": {
+          "type": "boolean",
+          "description": "Defines whether this page will be reloaded after all initial page loads are complete"
+        },
+        "zoomFactor": {
+          "type": "number",
+          "description": "Defines the factor in percent/100 by which the page will be zoomed"
+        },
+        "cssFiles": {
+          "type": "array",
+          "description": "A list of custom css files to inject into the page relative from the config directory",
+          "items": {
+            "type": "string",
+            "title": "cssFile"
+          }
+        },
+        "jsFiles": {
+          "type": "array",
+          "description": "A list of custom javascript files to inject into the page relative from the config directory",
+          "items": {
+            "type": "string",
+            "title": "jsFile"
+          }
+        },
+        "autoLogin": {
+          "$ref": "#/definitions/AutoLogin",
+          "description": "The configuration for an automatic login for this page"
+        }
+      }
+    },
+
+    "Position": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "integer",
+          "description": "The x coordinate of the top left corner of the window on the screen(s)"
+        },
+        "y": {
+          "type": "integer",
+          "description": "The y coordinate of the top left corner of the window on the screen(s)"
+        },
+        "width": {
+          "type": "integer",
+          "description": "The width of the window"
+        },
+        "height": {
+          "type": "integer",
+          "description": "The height of the window"
+        }
+      }
+    },
+
+    "Window": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "$ref": "#/definitions/Position",
+          "description": "The position of the window on the screen(s)"
+        },
+        "fullscreen": {
+          "type": "boolean",
+          "description": "Defines whether the window should take up an entire screen (screen selection is based on the position)"
+        },
+        "pageDefaults": {
+          "$ref": "#/definitions/Page",
+          "description": "The default page settings which will be copied into every page"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Page",
+            "title": "page",
+            "description": "The page specific settings (these may overwrite the default page settings)"
+          }
+        }
+      }
+    }
+  },
+
+  "properties": {
+    "windows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Window",
+        "title": "window"
+      }
+    }
+  }
+}

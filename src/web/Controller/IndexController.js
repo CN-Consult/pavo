@@ -5,7 +5,7 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-const nunjucks = require("nunjucks");
+const { app } = require("electron");
 const os = require("os");
 const BaseController = require(__dirname + "/BaseController");
 
@@ -24,16 +24,26 @@ class IndexController extends BaseController
      */
     respond(_request, _response)
     {
-        let windowsStatus = this.pavoApi.getWindowsStatus();
-        if (! Array.isArray(windowsStatus)) windowsStatus = [];
+        let getWindowsStatusPromise = this.pavoApi.getWindowsStatus();
+        let pavoStatus = this.pavoApi.getPavoStatus();
 
-        _response.writeHead(200, {"Content-Type": "text/html"});
-        _response.end(
-            nunjucks.render("index.njk", {
+        if (typeof getWindowsStatusPromise === "string")
+        {
+            getWindowsStatusPromise = new Promise(function(_resolve){
+                _resolve(getWindowsStatusPromise);
+            });
+        }
+
+        getWindowsStatusPromise.then(function(_windowsStatus){
+            if (! Array.isArray(_windowsStatus)) _windowsStatus = [];
+
+            _response.render("index.njk", {
                 dashboardName: os.hostname(),
-                windowsStatus: windowsStatus
-            })
-        );
+                pavoVersionIdentifier: app.getVersion(),
+                windowsStatus: _windowsStatus,
+                pavoStatus: pavoStatus
+            });
+        });
     }
 }
 
