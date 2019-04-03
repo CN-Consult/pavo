@@ -40,7 +40,7 @@ class WebClientEventProcessor extends BaseEventProcessor
     }
 
     /**
-     * Processes one of the events for the specific event that this event processor listens to.
+     * Processes one of the events that this event processor listens to.
      *
      * @param {Server} _socket The socket that emitted the event
      * @param {String} _eventName The name of the event
