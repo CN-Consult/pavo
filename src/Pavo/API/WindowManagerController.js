@@ -23,16 +23,6 @@ class WindowManagerController extends BaseApiController
 
 
     /**
-     * Returns the windows of the pavo app.
-     *
-     * @return {Window[]} The list of windows
-     */
-    getWindows()
-    {
-        return this.parentPavoApi.getParentPavo().getWindowManager().getWindows();
-    }
-
-    /**
      * Returns the status for each window of the pavo app.
      * This includes the configuration and whether the page switch loop is active
      *

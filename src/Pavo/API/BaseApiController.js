@@ -45,6 +45,18 @@ class BaseApiController
             if (this.providedMethodNames[i] === _methodName) return this[this.providedMethodNames[i]].bind(this);
         }
     }
+
+
+    /**
+     * Returns the windows of the pavo app.
+     *
+     * @return {Window[]} The list of windows
+     * @protected
+     */
+    getWindows()
+    {
+        return this.parentPavoApi.getParentPavo().getWindowManager().getWindows();
+    }
 }
 
 

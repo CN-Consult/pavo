@@ -32,10 +32,10 @@ class WindowController extends BaseApiController
     {
         this.logger.info("Received url load request for window " + _windowId + " with target url \"" + _url + "\"");
 
-        let window = this.parentPavoApi.getWindows()[_windowId];
+        let window = this.getWindows()[_windowId];
         if (window)
         {
-            this.parentPavoApi.haltPageSwitchLoopOfWindow(_windowId);
+            window.getPageSwitchLoop().halt();
             window.getPageDisplayer().displayCustomURL(_url);
         }
     }
@@ -51,7 +51,7 @@ class WindowController extends BaseApiController
     {
         this.logger.info("Received reload window request for window " + _windowId);
 
-        let window = this.parentPavoApi.getWindows()[_windowId];
+        let window = this.getWindows()[_windowId];
 
         if (window) return window.getPageDisplayer().reloadCurrentPage();
         else
