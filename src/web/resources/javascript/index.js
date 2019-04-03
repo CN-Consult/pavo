@@ -24,6 +24,7 @@ $(document).ready(function() {
 
     $("button.toggle-page-switch-loop").on("click", togglePageSwitchLoop);
     $("form.load-url-form").on("submit", loadUrlIntoWindow);
+    $("form.show-text-form").on("submit", showTextInWindow);
     $("button.reload-window").on("click", reloadWindows);
     $("div.window-configuration table.page-list tr.defined-page").on("click", switchToPage);
     $("div#pavo-overview button#edit-pavo-config").on("click", showJsonEditor);
@@ -92,6 +93,22 @@ function loadUrlIntoWindow(_event)
     let url = $(_event.target).find("input.url").val();
 
     socket.emit("loadURL", { windowIds: [ getWindowIdFromElement(_event.target) ], url: url });
+}
+
+/**
+ * Shows text inside a specific window.
+ *
+ * @param {Event} _event The event that triggered this function call
+ */
+function showTextInWindow(_event)
+{
+    // Prevent the page reload on form submission
+    _event.preventDefault();
+
+    // Fetch the text from the form
+    let text = $(_event.target).find("input.show-text").val();
+
+    socket.emit("showText", { windowId: getWindowIdFromElement(_event.target), text: text });
 }
 
 /**

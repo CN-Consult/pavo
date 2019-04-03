@@ -103,15 +103,27 @@
 
         <h4>Funktionen</h4>
 
-        <form class="load-url-form">
+        {# Load URL #}
+        <form class="load-url-form oneLineTextForm">
             <label for="url-{{ _windowIndex }}">URL</label>
             <input type="text" class="url" id="url-{{ _windowIndex }}">
 
-            <button class="btn btn-primary load-url" type="submit">
+            <button class="btn btn-primary" type="submit">
                 <i class="far fa-eye"></i> URL anzeigen
             </button>
         </form>
 
+        {# Show text #}
+        <form class="show-text-form oneLineTextForm">
+            <label for="show-text-{{ _windowIndex }}">Text</label>
+            <input type="text" class="show-text" id="show-text-{{ _windowIndex }}">
+
+            <button class="btn btn-primary" type="submit">
+                <i class="fas fa-font"></i> Text anzeigen
+            </button>
+        </form>
+
+        {# Reload Page #}
         <button class="btn btn-primary reload-window">
             <i class="fas fa-redo"></i> Aktuelle Seite neu laden
         </button>
