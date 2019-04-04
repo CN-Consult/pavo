@@ -154,8 +154,15 @@ p.circle.redCircle {
 }
 
 /* Window functions */
-form.load-url-form label {
-    margin-right: 5px;
+form.oneLineTextForm {
+    margin: 0 0 1px;
+}
+form.oneLineTextForm label {
+    /* Using padding as margin to make sure that clicking on the "margin" space still focuses the corresponding input element */
+    padding-right: 5px;
+}
+form.oneLineTextForm button {
+    width: 150px;
 }
 
 
