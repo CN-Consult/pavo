@@ -23,7 +23,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "bower": "^1.8.8",
     "docdash": "^1.0.2",
     "electron": "^4.0.5",
     "electron-builder": "^20.38.5",

@@ -1,8 +1,0 @@
-{
-  "name": "pavo-web-pages",
-  "description": "The Pavo web interface and internally used web pages",
-  "license": "MIT",
-  "dependencies": {
-    "jquery.boxfit": "^1.2.4"
-  }
-}
