@@ -1,0 +1,14 @@
+/**
+ * @file
+ * @version 0.1
+ * @copyright 2019 CN-Consult GmbH
+ * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
+ */
+
+body, div#show-text-container {
+    margin: 0;
+    padding: 0;
+}
+div#show-text-container {
+    visibility: hidden;
+}

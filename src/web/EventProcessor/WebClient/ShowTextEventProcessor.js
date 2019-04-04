@@ -1,27 +1,27 @@
 /**
- * @file
  * @version 0.1
- * @copyright 2018 CN-Consult GmbH
+ * @copyright 2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
 const WebClientEventProcessor = require(__dirname + "/../WebClientEventProcessor");
 
 /**
- * Handles the "switchToPage" events.
+ * Handles the "showText" events.
  */
-class SwitchToPageEventProcessor extends WebClientEventProcessor
+class ShowTextEventProcessor extends WebClientEventProcessor
 {
     /**
-     * SwitchToPageEventProcessor constructor.
+     * ShowTextEventProcessor constructor.
      *
      * @param {Server} _socket The socket
      * @param {PavoApi} _pavoApi The pavo api
      */
     constructor(_socket, _pavoApi)
     {
-        super(_socket, _pavoApi, [ "switchToPage" ]);
+        super(_socket, _pavoApi, [ "showText" ]);
     }
+
 
     // Public Methods
 
@@ -33,9 +33,9 @@ class SwitchToPageEventProcessor extends WebClientEventProcessor
      */
     processWebClientEvent(_eventName, _data)
     {
-        this.pavoApi.switchToPageInWindow(parseInt(_data.windowId), parseInt(_data.pageId));
+        this.pavoApi.showText(parseInt(_data.windowId), String(_data.text));
     }
 }
 
 
-module.exports = SwitchToPageEventProcessor;
+module.exports = ShowTextEventProcessor;

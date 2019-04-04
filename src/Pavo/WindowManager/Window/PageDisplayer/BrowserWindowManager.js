@@ -199,13 +199,13 @@ class BrowserWindowManager
     {
         this.currentPage = null;
         this.browserWindow.setBrowserView(null);
-        this.browserWindow.webContents.loadURL(_url);
 
         let self = this;
         return new Promise(function(_resolve){
             self.browserWindow.webContents.once("did-navigate", function(){
                 _resolve(self.browserWindow.webContents.getURL());
             });
+            self.browserWindow.webContents.loadURL(_url);
         });
     }
 

@@ -26,7 +26,7 @@ class GetLoadedConfigurationEventProcessor extends WebClientEventProcessor
     // Public Methods
 
     /**
-     * Processes one of the events for the specific event that this event processor listens to.
+     * Processes one of the events that this event processor listens to.
      *
      * @param {String} _eventName The name of the event
      * @param {*} _data The data that was sent with the event

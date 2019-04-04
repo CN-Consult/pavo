@@ -31,7 +31,7 @@ class PageSwitchLoopController extends BaseApiController
     {
         this.logger.info("Received page switch loop halt request for window " + _windowId);
 
-        let window = this.parentPavoApi.getWindows()[_windowId];
+        let window = this.getWindows()[_windowId];
         if (window)
         {
             let pageSwitchLoop = window.getPageSwitchLoop();
@@ -52,7 +52,7 @@ class PageSwitchLoopController extends BaseApiController
     {
         this.logger.info("Received page switch loop resume request for window " + _windowId);
 
-        let window = this.parentPavoApi.getWindows()[_windowId];
+        let window = this.getWindows()[_windowId];
         if (window)
         {
             let pageSwitchLoop = window.getPageSwitchLoop();
@@ -74,7 +74,7 @@ class PageSwitchLoopController extends BaseApiController
     {
         this.logger.info("Received switch to page window request for window " + _windowId + " with target page " + _pageId);
 
-        let window = this.parentPavoApi.getWindows()[_windowId];
+        let window = this.getWindows()[_windowId];
         if (window) window.getPageSwitchLoop().switchToPage(_pageId);
     }
 }

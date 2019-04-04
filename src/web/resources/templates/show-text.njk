@@ -1,0 +1,32 @@
+{#
+ # @file
+ # @version 0.1
+ # @copyright 2019 CN-Consult GmbH
+ # @author Yannick Lapp <yannick.lapp@cn-consult.eu>
+ #}
+
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <title>Mitteilung</title>
+
+        <link rel="stylesheet" href="css/show-text.css">
+
+        <script src="jquery/jquery.min.js"></script>
+        <script src="textfit/textFit.min.js"></script>
+
+        <script src="javascript/show-text.js"></script>
+
+        <style>
+            body {
+                background-color: {{ backgroundColor }};
+                color: {{ color }};
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="show-text-container">{{ showText }}</div>
+    </body>
+</html>
