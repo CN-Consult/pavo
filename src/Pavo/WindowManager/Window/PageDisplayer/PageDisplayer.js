@@ -181,11 +181,11 @@ class PageDisplayer extends EventEmitter
     }
 
     /**
-     * Displays a custom url in the current top browser window.
+     * Displays a custom url in the browser window.
      *
      * @param {String} _url The url to display in the current top browser window
      *
-     * @return {Promise} The promise that displays a custom url in the current top browser window
+     * @return {Promise} The promise that displays a custom url in the browser window
      *
      * @emits The "customUrlLoad" event on web contents navigation
      */
@@ -196,6 +196,7 @@ class PageDisplayer extends EventEmitter
         let self = this;
         return new Promise(function(_resolve){
             self.browserWindowManager.loadCustomURL(_url).then(function(_realURL){
+                delete self.displayedText;
                 self.customURL = _realURL;
                 self.emit("customUrlLoad", { page: self.currentPage, url: _realURL });
                 _resolve("URL loaded into browser window");
@@ -214,14 +215,52 @@ class PageDisplayer extends EventEmitter
     }
 
     /**
+     * Displays custom text in the browser window.
+     *
+     * @param {String} _text The text to show
+     *
+     * @return {Promise} The promise that shows the text inside the browser window
+     *
+     * @emits The "displayText" event on web contents navigation
+     */
+    displayText(_text)
+    {
+        pageDisplayerLogger.debug("Displaying text \"" + _text + "\" in window #" + this.parentWindow.getId());
+
+        let textUrl = "http://127.0.0.1:8080/show-text?text=" + _text;
+
+        let self = this;
+        return new Promise(function(_resolve){
+            self.browserWindowManager.loadCustomURL(textUrl).then(function(){
+                delete self.customURL;
+                self.displayedText = _text;
+                self.emit("displayText", { text: _text });
+                _resolve("Text shown in browser window");
+            });
+        });
+    }
+
+    /**
+     * Returns whether this PageDisplayer is currently displaying custom text.
+     *
+     * @return {Boolean} True if this PageDisplayer is currently displaying custom text, false otherwise
+     */
+    isDisplayingText()
+    {
+        return (this.displayedText && ! this.browserWindowManager.getCurrentPage());
+    }
+
+
+    /**
      * Restores the original page of the current page.
      */
     restoreOriginalPage()
     {
-        if (this.customURL)
+        if (this.customURL || this.displayedText)
         {
             this.browserWindowManager.showPage(this.currentPage);
             delete this.customURL;
+            delete this.displayedText;
 
             this.browserWindowManager.unloadCustomURL();
         }

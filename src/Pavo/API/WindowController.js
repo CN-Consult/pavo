@@ -18,7 +18,7 @@ class WindowController extends BaseApiController
      */
     constructor(_parentPavoApi)
     {
-        super(_parentPavoApi, ["loadURLIntoWindow", "reloadWindow"]);
+        super(_parentPavoApi, ["loadURLIntoWindow", "reloadWindow", "showText"]);
     }
 
 
@@ -58,6 +58,32 @@ class WindowController extends BaseApiController
         {
             return new Promise(function(_resolve, _reject){
                 _reject("Could not reload window: No window with id '" + _windowId + "' exists")
+            });
+        }
+    }
+
+    /**
+     * Shows a custom message inside a window.
+     *
+     * @param {int} _windowId The window id
+     * @param {String} _text The text to show
+     *
+     * @return {Promise} The promise that shows the text inside the window
+     */
+    showText(_windowId, _text)
+    {
+        this.logger.info("Received showText request with text '" + _text + "'");
+
+        let window = this.getWindows()[_windowId];
+        if (window)
+        {
+            window.getPageSwitchLoop().halt();
+            return window.getPageDisplayer().displayText(_text);
+        }
+        else
+        {
+            return new Promise(function(_resolve, _reject){
+                _reject("Could not show text in window: No window with id '" + _windowId + "' exists");
             });
         }
     }
