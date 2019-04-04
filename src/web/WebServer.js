@@ -177,6 +177,7 @@ class WebServer extends EventEmitter
                     "Array.prototype.includes": {}
                 }
             }).then(function(_result){
+                _response.setHeader("content-type", "application/javascript");
                 _response.end(_result);
             });
         });
