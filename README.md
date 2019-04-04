@@ -22,7 +22,6 @@ Set up a development environment
 * vagrant ssh
 * GUI: Login as vagrant (password: vagrant)
 * cd project
-* sudo npm install --unsafe-perm=true
 * npm start
 * sudo npm run dist
 

@@ -5,11 +5,10 @@
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
-body {
+body, div#show-text-container {
     margin: 0;
     padding: 0;
 }
 div#show-text-container {
-    padding: 0;
-    margin: 0;
+    visibility: hidden;
 }

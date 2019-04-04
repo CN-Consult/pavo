@@ -166,6 +166,7 @@ class WebServer extends EventEmitter
 
         // External libraries
         this.express.use("/bootstrap", express.static(__dirname + "/../../node_modules/bootstrap/dist"));
+        this.express.use("/textfit", express.static(__dirname + "/../../node_modules/textfit"));
         this.express.use("/boxfit", express.static(__dirname + "/resources/bower_components/jquery.boxfit/dist"));
         this.express.use("/jquery", express.static(__dirname + "/../../node_modules/jquery/dist"));
         this.express.use("/jquery-ui", express.static(__dirname + "/../../node_modules/jquery-ui-dist"));

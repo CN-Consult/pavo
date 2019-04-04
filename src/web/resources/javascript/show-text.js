@@ -5,11 +5,18 @@
  */
 
 $(document).ready(function(){
-    $("div#show-text-container").boxfit({
-        multiline: true,
-        width: $(window).width(),
-        height: $(window).height() - 50,
-        step_limit: 100000,
-        step_size: 3
+
+    var showTextContainer = $("div#show-text-container");
+
+    $(showTextContainer).css("height", $(window).height());
+    $(showTextContainer).css("width", $(window).width());
+
+    textFit(showTextContainer, {
+        multiLine: true,
+        alignHoriz: true,
+        alignVert: true,
+        maxFontSize: 100000
     });
+
+    $(showTextContainer).css("visibility", "visible");
 });
