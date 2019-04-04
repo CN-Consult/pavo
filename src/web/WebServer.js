@@ -16,6 +16,7 @@ const polyfill = require("polyfill-library");
 
 // Controllers
 const IndexController = require(__dirname + "/Controller/IndexController");
+const ShowTextController = require(__dirname + "/Controller/ShowTextController");
 
 /**
  * Handles creating of a web server which provides the web ui.
@@ -104,7 +105,8 @@ class WebServer extends EventEmitter
     initializeControllers(_pavoApi)
     {
         this.controllers = {
-            "index": new IndexController(_pavoApi)
+            "index": new IndexController(_pavoApi),
+            "show-text": new ShowTextController(_pavoApi)
         };
     }
 
@@ -154,6 +156,7 @@ class WebServer extends EventEmitter
     {
         // Root
         this.express.get("/", this.getControllerResponse("index"));
+        this.express.get("/show-text", this.getControllerResponse("show-text"));
 
         // CSS files
         this.express.use("/css", express.static(__dirname + "/resources/css"));
@@ -163,6 +166,7 @@ class WebServer extends EventEmitter
 
         // External libraries
         this.express.use("/bootstrap", express.static(__dirname + "/../../node_modules/bootstrap/dist"));
+        this.express.use("/boxfit", express.static(__dirname + "/resources/bower_components/jquery.boxfit/dist"));
         this.express.use("/jquery", express.static(__dirname + "/../../node_modules/jquery/dist"));
         this.express.use("/jquery-ui", express.static(__dirname + "/../../node_modules/jquery-ui-dist"));
         this.express.use("/font-awesome", express.static(__dirname + "/../../node_modules/@fortawesome/fontawesome-free"));
