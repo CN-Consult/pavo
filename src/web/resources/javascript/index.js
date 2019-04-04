@@ -32,6 +32,7 @@ $(document).ready(function() {
 
     socket.on("pageSwitchLoopStatusUpdate", handlePageSwitchLoopStatusUpdate);
     socket.on("customUrlLoad", handleCustomUrlLoad);
+    socket.on("displayText", handleDisplayText);
 
     initializeTimeProgressBars();
 
@@ -297,32 +298,39 @@ function getWindowIdFromElement(_node)
 }
 
 /**
- * Removes the "active" class from all table rows of the page list and shows the custom page table row.
+ * Shows the special page table row with the information about the custom url.
  *
  * @param {object} _data The data which contains the window id and the url that was loaded
  */
 function handleCustomUrlLoad(_data)
 {
-    // Remove "active" class from all pages
-    let windowPages = $("div#window-configuration-" + _data.window + " table.page-list tr");
-    windowPages.removeClass("active");
-
-    showCustomUrl(_data.window, _data.url);
+    showSpecialPage(_data.window, "C", _data.url);
 }
 
 /**
- * Inserts a url into and shows the custom page table row for a specified window.
+ * Shows the special page table row with the information about the displayed text.
+ *
+ * @param {object} _data The data which contains the window id and the text that was displayed
+ */
+function handleDisplayText(_data)
+{
+    showSpecialPage(_data.window, "T", _data.text);
+}
+
+/**
+ * Shows the special table row with custom values.
  *
  * @param {int} _windowId The id of the window
- * @param {string} _url The url to display in the custom page table row
+ * @param {string} _typeIdentifier The identifier for the special page type
+ * @param {string} _pageName The name for the special page
  */
-function showCustomUrl(_windowId, _url)
+function showSpecialPage(_windowId, _typeIdentifier, _pageName)
 {
-    let pageListTable = $("div#window-configuration-" + _windowId + " table.page-list");
-    let customUrlTableRow = $(pageListTable).find("tr.custom-page");
+    let windowPages = $("div#window-configuration-" + _windowId + " table.page-list tr");
+    let specialPageTableRow = $(windowPages).filter(".special-page");
 
-    customUrlTableRow.find("td.page-name").text(_url);
+    specialPageTableRow.find("td.page-type p").text(_typeIdentifier);
+    specialPageTableRow.find("td.page-name").text(_pageName);
 
-    let lastTableRowNumber = $(pageListTable).find("tr").length - 1;
-    setActivePage(_windowId, lastTableRowNumber);
+    setActivePage(_windowId, windowPages.length - 1);
 }

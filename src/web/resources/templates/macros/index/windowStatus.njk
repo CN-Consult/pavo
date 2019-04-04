@@ -43,7 +43,7 @@
             {% set pageDefaults = _windowStatus.configuration.pageDefaults %}
             {% for pageIndex in range(0, _windowStatus.configuration.pages.length) %}
                 {% set page = _windowStatus.configuration.pages[pageIndex] %}
-                <tr class="defined-page {% if (_windowStatus.currentPage === pageIndex and not _windowStatus.customURL) %}active{% endif %}"
+                <tr class="defined-page {% if (_windowStatus.currentPage === pageIndex and not _windowStatus.specialPage) %}active{% endif %}"
                         id="page-{{ _windowIndex }}-{{ pageIndex }}"
                         data-page="{{ pageIndex }}">
 
@@ -66,17 +66,17 @@
                 </tr>
             {% endfor %}
 
-            <tr class="custom-page {% if _windowStatus.customURL %}active{% endif %}">
+            <tr class="special-page {% if _windowStatus.specialPage %}active{% endif %}">
 
                 {# Page type (C = Custom) #}
                 <td class="page-type">
-                    <p>C</p>
+                    <p>{%  if _windowStatus.specialPage %}{{ _windowStatus.specialPage.type }}{% endif %}</p>
                 </td>
-                <td colspan="2" class="page-name">{% if _windowStatus.customURL %}{{ _windowStatus.customURL }}{% endif %}</td>
+                <td colspan="2" class="page-name">{% if _windowStatus.specialPage %}{{ _windowStatus.specialPage.name }}{% endif %}</td>
             </tr>
         </table>
 
-        <p class="caption">S = Static, R = Reload, C = Custom</p>
+        <p class="caption">S = Static, R = Reload, C = Custom, T = Text</p>
         <hr>
 
         <h4>Komponenten</h4>

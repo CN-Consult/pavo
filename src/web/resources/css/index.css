@@ -109,13 +109,13 @@ table.page-list td:not(:last-child) {
 table.page-list tr.active td.page-type p {
     background-color: #FA0;
 }
-table.page-list tr.custom-page {
+table.page-list tr.special-page {
     display: none;
 }
-table.page-list tr.active.custom-page {
+table.page-list tr.active.special-page {
     display: table-row;
 }
-table.page-list tr.active.custom-page td.page-type p {
+table.page-list tr.active.special-page td.page-type p {
     background-color: #AAA;
 }
 table.page-list td.page-type p {

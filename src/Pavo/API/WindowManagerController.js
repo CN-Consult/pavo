@@ -64,7 +64,17 @@ class WindowManagerController extends BaseApiController
 
                         if (windows[windowId].getPageSwitchLoop().getPageDisplayer().isDisplayingCustomURL())
                         {
-                            windowsStatus[windowId].customURL = windows[windowId].getPageSwitchLoop().getPageDisplayer().getCustomURL();
+                            windowsStatus[windowId].specialPage = {
+                                type: "C",
+                                name: windows[windowId].getPageSwitchLoop().getPageDisplayer().getCustomURL()
+                            };
+                        }
+                        else if (windows[windowId].getPageSwitchLoop().getPageDisplayer().isDisplayingText())
+                        {
+                            windowsStatus[windowId].specialPage = {
+                                type: "T",
+                                name: windows[windowId].getPageSwitchLoop().getPageDisplayer().getDisplayedText()
+                            };
                         }
 
                         numberOfProcessedWindows++;

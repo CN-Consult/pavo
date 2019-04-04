@@ -94,6 +94,16 @@ class PageDisplayer extends EventEmitter
         return this.customURL;
     }
 
+    /**
+     * Returns the text that is currently displayed by this PageDisplayer.
+     *
+     * @return {string|null} The text or null if no text is currently displayed by this PageDisplayer
+     */
+    getDisplayedText()
+    {
+        return this.displayedText;
+    }
+
 
     // Public Methods
 
