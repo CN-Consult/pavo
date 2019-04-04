@@ -198,7 +198,7 @@ class PageDisplayer extends EventEmitter
             self.browserWindowManager.loadCustomURL(_url).then(function(_realURL){
                 delete self.displayedText;
                 self.customURL = _realURL;
-                self.emit("customUrlLoad", { page: self.currentPage, url: _realURL });
+                self.emit("customUrlLoad", { url: _realURL });
                 _resolve("URL loaded into browser window");
             });
         });

@@ -1,16 +1,15 @@
 /**
- * @file
  * @version 0.1
- * @copyright 2018-2019 CN-Consult GmbH
+ * @copyright 2019 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
 const BaseEventProcessor = require(__dirname + "/../BaseEventProcessor");
 
 /**
- * Handles the "customUrlLoad" events of the page displayer.
+ * Handles the "displayText" events of the page displayer.
  */
-class CustomUrlLoadEventProcessor extends BaseEventProcessor
+class DisplayTextEventProcessor extends BaseEventProcessor
 {
     /**
      * Initializes the event listeners.
@@ -22,7 +21,7 @@ class CustomUrlLoadEventProcessor extends BaseEventProcessor
 
             /** @param {Window} _window */
             function(_window){
-                self.initializeEventListenersFor(_window.getPageDisplayer(), [ "customUrlLoad" ]);
+                self.initializeEventListenersFor(_window.getPageDisplayer(), [ "displayText" ]);
             }
         );
     }
@@ -32,18 +31,18 @@ class CustomUrlLoadEventProcessor extends BaseEventProcessor
      *
      * @param {PageDisplayer} _pageDisplayer The page displayer that emitted the event
      * @param {String} _eventName The name of the event
-     * @param {Page} _data The url that was loaded
+     * @param {Page} _data The text that was displayed
      */
     processEvent(_pageDisplayer, _eventName, _data)
     {
         let statusUpdate = {
             window: _pageDisplayer.getParentWindow().getId(),
-            url: _data.url
+            text: _data.text
         };
 
-        this.socket.emit("customUrlLoad", statusUpdate);
+        this.socket.emit("displayText", statusUpdate);
     }
 }
 
 
-module.exports = CustomUrlLoadEventProcessor;
+module.exports = DisplayTextEventProcessor;
