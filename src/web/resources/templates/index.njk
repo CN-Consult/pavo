@@ -32,10 +32,16 @@
 
     {# polyfill, this is required for Internet Explorer only #}
     <script src="polyfill.io"></script>
+
+    {# native toast #}
+    <link rel="stylesheet" href="native-toast/native-toast.css">
+    <script src="native-toast/native-toast.min.js"></script>
+
 {% endblock %}
 
 {% block customLibraries %}
     {# Custom scripts#}
+    <script src="javascript/util/Utils.js"></script>
     <script src="javascript/index/TimeProgressBar.js"></script>
     <script src="javascript/index/JsonEditorDialog.js"></script>
     <script src="javascript/index.js"></script>

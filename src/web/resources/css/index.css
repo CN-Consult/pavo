@@ -202,3 +202,9 @@ div#pavo-status-data {
     margin: 0 auto;
     padding: 0 10px;
 }
+
+
+/** Toasts **/
+div.native-toast-message {
+    cursor: pointer;
+}

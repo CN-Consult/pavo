@@ -34,6 +34,10 @@ $(document).ready(function() {
     socket.on("customUrlLoad", handleCustomUrlLoad);
     socket.on("displayText", handleDisplayText);
 
+    socket.on("error", function(_errorMessage){
+        Utils.showErrorMessage(_errorMessage);
+    });
+
     initializeTimeProgressBars();
 
     // Initialize tool tips
@@ -304,6 +308,7 @@ function getWindowIdFromElement(_node)
  */
 function handleCustomUrlLoad(_data)
 {
+    Utils.showSuccessMessage("URL erfolgreich geladen");
     showSpecialPage(_data.window, "C", _data.url);
 }
 

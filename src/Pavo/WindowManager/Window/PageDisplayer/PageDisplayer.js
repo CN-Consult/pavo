@@ -201,15 +201,23 @@ class PageDisplayer extends EventEmitter
      */
     displayCustomURL(_url)
     {
-        pageDisplayerLogger.debug("Displaying custom url \"" + _url + "\" in window #" + this.parentWindow.getId());
+        let windowId = this.parentWindow.getId();
+        pageDisplayerLogger.debug("Displaying custom url \"" + _url + "\" in window #" + windowId);
+
+        let fallbackURL;
+        if (this.isDisplayingCustomURL()) fallbackURL = this.customURL;
+        else if (this.isDisplayingText()) fallbackURL = this.getTextDisplayUrl(this.displayedText);
 
         let self = this;
-        return new Promise(function(_resolve){
-            self.browserWindowManager.loadCustomURL(_url).then(function(_realURL){
+        return new Promise(function(_resolve, _reject){
+            return self.browserWindowManager.loadCustomURL(_url, fallbackURL).then(function(_realURL){
                 delete self.displayedText;
                 self.customURL = _realURL;
                 self.emit("customUrlLoad", { url: _realURL });
-                _resolve("URL loaded into browser window");
+                pageDisplayerLogger.info("Custom url \"" + _url + "\" successfully displayed in window #" + windowId);
+            }).catch(function(_error){
+                pageDisplayerLogger.warn("Could not display custom url \"" + _url + "\" in window #" + windowId + ": " + _error);
+                _reject(_error);
             });
         });
     }
@@ -237,7 +245,7 @@ class PageDisplayer extends EventEmitter
     {
         pageDisplayerLogger.debug("Displaying text \"" + _text + "\" in window #" + this.parentWindow.getId());
 
-        let textUrl = "http://127.0.0.1:8080/show-text?text=" + _text;
+        let textUrl = this.getTextDisplayUrl(_text);
 
         let self = this;
         return new Promise(function(_resolve){
@@ -248,6 +256,18 @@ class PageDisplayer extends EventEmitter
                 _resolve("Text shown in browser window");
             });
         });
+    }
+
+    /**
+     * Creates and returns the URL to display a text in the browser window.
+     *
+     * @param {String} _text The text to show
+     *
+     * @return {String} The URL
+     */
+    getTextDisplayUrl(_text)
+    {
+        return "http://127.0.0.1:8080/show-text?text=" + _text;
     }
 
     /**

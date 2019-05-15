@@ -192,19 +192,35 @@ class BrowserWindowManager
      * Loads a custom URL into the browser window and unsets the browser view.
      *
      * @param {String} _url The custom URL
+     * @param {String} _fallbackUrl The URL that will be loaded if the custom URL fails to load
      *
      * @return {Promise} The promise that loads the custom URL into the browser window and unsets the browser view
      */
-    loadCustomURL(_url)
+    loadCustomURL(_url, _fallbackUrl)
     {
-        this.currentPage = null;
-        this.browserWindow.setBrowserView(null);
+        let navigateEventHandler, loadFailedEventHandler;
 
         let self = this;
-        return new Promise(function(_resolve){
-            self.browserWindow.webContents.once("did-navigate", function(){
+        return new Promise(function(_resolve, _reject){
+
+            navigateEventHandler = function(){
+                self.browserWindow.webContents.removeListener("did-fail-load", loadFailedEventHandler);
+                self.currentPage = null;
+                self.browserWindow.setBrowserView(null);
                 _resolve(self.browserWindow.webContents.getURL());
-            });
+            };
+            self.browserWindow.webContents.once("did-navigate", navigateEventHandler);
+
+            loadFailedEventHandler = function(_event, _errorCode, _errorDescription){
+                self.browserWindow.webContents.removeListener("did-navigate", navigateEventHandler);
+
+                // Load the fallback URL
+                if (_fallbackUrl) self.browserWindow.webContents.loadURL(_fallbackUrl);
+
+                _reject(_errorDescription);
+            };
+            self.browserWindow.webContents.once("did-fail-load", loadFailedEventHandler);
+
             self.browserWindow.webContents.loadURL(_url);
         });
     }
