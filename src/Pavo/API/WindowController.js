@@ -27,6 +27,8 @@ class WindowController extends BaseApiController
      *
      * @param {int} _windowId The id of the window
      * @param {String} _url The url to load into the window
+     *
+     * @return {Promise} The promise that loads the URL into the specified window
      */
     loadURLIntoWindow(_windowId, _url)
     {
@@ -36,8 +38,11 @@ class WindowController extends BaseApiController
         if (window)
         {
             window.getPageSwitchLoop().halt();
-            window.getPageDisplayer().displayCustomURL(_url);
+            return window.getPageDisplayer().displayCustomURL(_url);
         }
+        else return new Promise(function(_resolve, _reject){
+            _reject("No window found with id " + _windowId);
+        });
     }
 
     /**
