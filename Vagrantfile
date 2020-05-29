@@ -11,7 +11,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", path: "VagrantProvision/VagrantProvision_default.sh"
 
   config.vm.define "ubuntu18", primary: true, autostart: true do |ubuntu18|
-    ubuntu18.vm.box = "blagojs/ubuntu-bionic-gnome-amd64"
+    ubuntu18.vm.box = "pega-squid/ubuntu-18.04.1-desktop"
     ubuntu18.vm.provision "shell", path: "VagrantProvision/VagrantProvision_ubuntu18.sh"
     ubuntu18.vm.provision :reload
   end

@@ -1,9 +1,10 @@
 /**
  * @version 0.1
- * @copyright 2018-2019 CN-Consult GmbH
+ * @copyright 2018-2020 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
+const ObjectMerger = require(__dirname + "/../../Util/ObjectMerger");
 const Window = require(__dirname + "/Window/Window");
 const windowManagerLogger = require("log4js").getLogger("windowManager");
 
@@ -23,6 +24,7 @@ class WindowManager
     constructor(_parentPavo)
     {
         this.parentPavo = _parentPavo;
+        this.objectMerger = new ObjectMerger();
         this.windows = [];
     }
 
@@ -80,14 +82,15 @@ class WindowManager
     /**
      * Initializes the windows that are defined in the currently loaded app configuration.
      *
+     * @param {Object} _windowDefaults The default window settings
      * @param {Object} _windowsConfiguration The windows configuration
      *
      * @return {Promise} The promise that initializes the WindowManager
      */
-    initialize(_windowsConfiguration)
+    initialize(_windowDefaults, _windowsConfiguration)
     {
         windowManagerLogger.debug("Initializing WindowManager.");
-        return this.initializeWindows(_windowsConfiguration);
+        return this.initializeWindows(_windowDefaults, _windowsConfiguration);
     }
 
     /**
@@ -125,20 +128,24 @@ class WindowManager
      * A nice side effect is that automatic login's are automatically applied to all pages that are defined after the
      * page with the initial login.
      *
+     * @param {Object} _windowDefaults The default window settings
      * @param {Object} _windowsConfiguration The windows configuration
      * @param {int} _currentWindowIndex The current window index (Used by recursive calls)
      *
      * @returns {Promise} The promise that initializes the windows
      * @private
      */
-    initializeWindows(_windowsConfiguration, _currentWindowIndex = 0)
+    initializeWindows(_windowDefaults, _windowsConfiguration, _currentWindowIndex = 0)
     {
         let window = new Window(this, _currentWindowIndex);
         this.windows[window.getId()] = window;
 
+        let windowSpecificConfiguration = _windowsConfiguration[window.getId()];
+        let windowConfiguration = this.objectMerger.mergeObjects(_windowDefaults, windowSpecificConfiguration, true);
+
         let self = this;
-        return new Promise(function(_resolve){
-            window.initialize(_windowsConfiguration[window.getId()]).then(function(){
+        return new Promise(function(_resolve, _reject){
+            window.initialize(windowConfiguration).then(function(){
                 if (window.getId() === _windowsConfiguration.length - 1)
                 {
                     self.reloadPagesAfterAppInitialization().then(function(){
@@ -148,7 +155,7 @@ class WindowManager
                 }
                 else
                 {
-                    self.initializeWindows(_windowsConfiguration, ++_currentWindowIndex).then(function(_message){
+                    self.initializeWindows(_windowDefaults, _windowsConfiguration, ++_currentWindowIndex).then(function(_message){
                         _resolve(_message);
                     });
                 }
