@@ -68,6 +68,10 @@
           "type": "integer",
           "description": "The interval in which the time will be reloaded in seconds"
         },
+        "maximumSecondsToWaitForLoad": {
+          "type": "integer",
+          "description": "The maximum time to wait for the initial page load to complete (in seconds)"
+        },
         "reloadAfterAppInit": {
           "type": "boolean",
           "description": "Defines whether this page will be reloaded after all initial page loads are complete"

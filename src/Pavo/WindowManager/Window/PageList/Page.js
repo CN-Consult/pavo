@@ -1,6 +1,6 @@
 /**
  * @version 0.1
- * @copyright 2018-2019 CN-Consult GmbH
+ * @copyright 2018-2020 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -51,6 +51,10 @@ class Page extends EventEmitter
 
         if (_pageConfiguration.reloadTime) this.reloadTime = _pageConfiguration.reloadTime * 1000;
         else this.reloadTime = 0;
+
+        if (_pageConfiguration.maximumSecondsToWaitForLoad) this.maximumSecondsToWaitForLoad = _pageConfiguration.maximumSecondsToWaitForLoad;
+        else this.maximumSecondsToWaitForLoad = 30;
+
 
         // Url
         this.url = _pageConfiguration.url;
@@ -277,15 +281,24 @@ class Page extends EventEmitter
         let self = this;
         return new Promise(function(_resolve){
 
+            pageLogger.debug("Waiting up to " + self.maximumSecondsToWaitForLoad + " seconds for initial page load of Page #" + self.displayId + " ...");
+            let pageLoadWaitTimeout = setTimeout(function(){
+                pageLogger.warn("Page #" + self.displayId + " failed to load in " + self.maximumSecondsToWaitForLoad +  " seconds");
+                _resolve("Maximum wait time reached");
+            }, self.maximumSecondsToWaitForLoad * 1000);
+
             if (self.automaticLogin && self.automaticLogin.redirectsToMainUrl === true && _autoLoginResult === "Automatic login finished")
             { // The main url is automatically loaded after a successful login
 
+                clearTimeout(pageLoadWaitTimeout);
                 pageLogger.debug("No url reload necessary for Page #" + self.displayId + ".");
                 _resolve("No url reload necessary.");
             }
             else
             {
                 self.webContentsDataInjector.once("data-injected", function(){
+                    clearTimeout(pageLoadWaitTimeout);
+                    pageLogger.debug("Page #" + self.displayId + " loaded");
                     _resolve("Url loaded.");
                 });
 
