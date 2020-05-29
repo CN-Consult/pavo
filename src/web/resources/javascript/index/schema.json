@@ -149,6 +149,10 @@
   },
 
   "properties": {
+    "windowDefaults": {
+      "$ref": "#/definitions/Window",
+      "description": "The default window settings which will be copied into every window"
+    },
     "windows": {
       "type": "array",
       "items": {

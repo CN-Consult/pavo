@@ -1,6 +1,6 @@
 /**
  * @version 0.1
- * @copyright 2018-2019 CN-Consult GmbH
+ * @copyright 2018-2020 CN-Consult GmbH
  * @author Yannick Lapp <yannick.lapp@cn-consult.eu>
  */
 
@@ -114,7 +114,7 @@ class Pavo extends EventEmitter
 
         let self = this;
         return new Promise(function(_resolve){
-            self.windowManager.initialize(self.loadedConfiguration.windows).then(function(){
+            self.windowManager.initialize(self.loadedConfiguration.windowDefaults, self.loadedConfiguration.windows).then(function(){
                 self.windowManager.startPageSwitchLoops().then(function(){
                     self.startTimestamp = Date.now();
                     self.emit("initialized");
