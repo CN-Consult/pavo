@@ -8,7 +8,7 @@ const pavoApiLogger = require("log4js").getLogger("pavoApi");
 
 /**
  * Base class for API controllers.
- * A API controller provides methods to fetch information about and to control a component of the Pavo app.
+ * An API controller provides methods to fetch information about and to control a component of the Pavo app.
  * All methods that are defined as provided methods will be callable from the pavo API.
  *
  * @property {PavoApi} parentPavoApi The parent pavo API

@@ -80,7 +80,7 @@ class PavoController extends BaseApiController
     }
 
     /**
-     * Returns a object that contains status information about the pavo app.
+     * Returns an object that contains status information about the pavo app.
      *
      * @return {object} The object that contains status information
      */

@@ -23,7 +23,7 @@ class WindowController extends BaseApiController
 
 
     /**
-     * Loads a url into a specified window.
+     * Loads an url into a specified window.
      *
      * @param {int} _windowId The id of the window
      * @param {String} _url The url to load into the window

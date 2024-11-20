@@ -184,11 +184,11 @@ class AutomaticLogin
     }
 
     /**
-     * Returns the javascript call to get a element by css selector.
+     * Returns the javascript call to get an element by css selector.
      *
      * @param {string} _selector The css selector
      *
-     * @return {string} The javascript call to get a element by css selector
+     * @return {string} The javascript call to get an element by css selector
      */
     static getElementFetchString(_selector)
     {
