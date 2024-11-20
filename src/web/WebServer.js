@@ -12,7 +12,6 @@ const http = require("http");
 const minifyHTML = require("express-minify-html");
 const nunjucks = require("nunjucks");
 const socket = require("socket.io");
-const polyfill = require("polyfill-library");
 
 // Controllers
 const IndexController = require(__dirname + "/Controller/IndexController");
@@ -175,18 +174,6 @@ class WebServer extends EventEmitter
         this.express.use("/json-editor", express.static(__dirname + "/../../node_modules/@json-editor/json-editor/dist"));
         this.express.use("/native-toast", express.static(__dirname + "/../../node_modules/native-toast/dist"));
 
-        this.express.get("/polyfill.io", function(_request, _response){
-            polyfill.getPolyfillString({
-                minify: true,
-                features: {
-                    "Promise": {},
-                    "Array.prototype.includes": {}
-                }
-            }).then(function(_result){
-                _response.setHeader("content-type", "application/javascript");
-                _response.end(_result);
-            });
-        });
     }
 
     /**
