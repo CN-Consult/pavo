@@ -226,7 +226,7 @@ class BrowserWindowManager
     }
 
     /**
-     * Loads a empty page into the browser window.
+     * Loads an empty page into the browser window.
      */
     unloadCustomURL()
     {
