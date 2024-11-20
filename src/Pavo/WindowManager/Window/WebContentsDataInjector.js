@@ -6,6 +6,7 @@
 
 const fs = require("fs");
 const EventEmitter = require("events");
+const pageLogger = require("log4js").getLogger("page");
 
 /**
  * Injects custom javascript and css files into WebContents objects.
@@ -71,7 +72,8 @@ class WebContentsDataInjector extends EventEmitter
         let self = this;
         this.injectData(webContents).then(function(){
             self.emit("data-injected");
-        });
+        })
+            .catch(()=> pageLogger.error("Data injection failed!!!"));
     }
 
 
@@ -84,8 +86,30 @@ class WebContentsDataInjector extends EventEmitter
      */
     attachToWebContents(_webContents)
     {
+        /** DANGER!!! This code contains a race condition!!! **/
         // Attach the dom ready handler to the WebContents
-        _webContents.on("dom-ready", this.domReadyHandler);
+        // _webContents.on("dom-ready", this.domReadyHandler);
+
+        // 'dom-ready' is an early event. It will be triggered before the content of the web page is loaded.
+        // This makes this application to inject JS into a <HEAD> tag while it does not exist.
+
+        /** Hotfix with some logging! I found still no usable event. So I used a timeout to fix this issue **/
+        // Todo: Remove hotfix and implement a final fix!
+        _webContents.on('dom-ready', function() {pageLogger.log('dom-ready');});
+        _webContents.on('did-finish-load', () => {
+            pageLogger.log('did-finish-load');
+            let timeout = setTimeout(() => {
+                pageLogger.log('Continue after a timeout of 2 seconds with data injection!');
+                this.injectData(_webContents)
+                    .then((msg) => {
+                        pageLogger.log(msg);
+                        this.emit("data-injected");
+                    })
+                    .catch(()=> pageLogger.error("Data injection failed!!!"));
+                clearTimeout(timeout);
+            }, 2000);
+        });
+        /** End of hotfix **/
     }
 
     /**
@@ -109,13 +133,19 @@ class WebContentsDataInjector extends EventEmitter
     {
         let self = this;
         return new Promise(function(_resolve){
-            self.injectZoomFactor(_webContents).then(function(){
+            self.injectJavascriptFiles(_webContents).then(function(){
                 self.injectCssFiles(_webContents).then(function(){
-                    self.injectJavascriptFiles(_webContents).then(function(){
+                    self.injectZoomFactor(_webContents).then(function(){
                         _resolve("Custom css and javascript files injected");
-                    });
+                    })
+                        .catch(()=> pageLogger.error("Zoom Factor injection error!"));
+                })
+                    .catch(()=> pageLogger.error("CSS File injection error!"));
+            })
+                .catch((e)=>{
+                    pageLogger.error("JS injection error!")
+                    pageLogger.error(e);
                 });
-            });
         });
     }
 
@@ -176,10 +206,18 @@ class WebContentsDataInjector extends EventEmitter
             else
             {
                 self.cssFilePaths.forEach(function(_cssFilePath){
-                    WebContentsDataInjector.injectCssFile(_webContents, _cssFilePath).then(function(){
-                        numberOfInjectedCssFiles++;
-                        if (numberOfInjectedCssFiles === numberOfCssFiles) _resolve("CSS files injected");
-                    });
+                    WebContentsDataInjector.injectCssFile(_webContents, _cssFilePath)
+                        .then(function(){
+                            numberOfInjectedCssFiles++;
+                            if (numberOfInjectedCssFiles === numberOfCssFiles) {
+                                _resolve("CSS files injected");
+                            }
+                        })
+                        .catch((errMsg)=>{
+                        // Should reach this catch block, but it does not after proven fail, when the page is not ready.
+                            pageLogger.error("CSS Files injection failed!");
+                            pageLogger.error(errMsg);
+                        });
                 });
             }
         });
@@ -208,7 +246,8 @@ class WebContentsDataInjector extends EventEmitter
                     WebContentsDataInjector.injectJavascriptFile(_webContents, _javascriptFilePath).then(function(){
                         numberOfInjectedJavascriptFiles++;
                         if (numberOfInjectedJavascriptFiles === numberOfJavascriptFiles) _resolve("Javascript files injected");
-                    });
+                    })
+                        .catch(()=> pageLogger.error("Javascript Files injection failed!"));
                 });
             }
         });
@@ -257,7 +296,7 @@ class WebContentsDataInjector extends EventEmitter
     }
 
     /**
-     * Builds a java script string that inserts an inline css tag into a pages header.
+     * Builds a javascript string that inserts an inline css tag into a pages header.
      * Using javascript to add the css as inline tag because using the "WebContents.insertCss" method doesn't
      * style the elements as expected (!important statements seem to be ignored).
      *
