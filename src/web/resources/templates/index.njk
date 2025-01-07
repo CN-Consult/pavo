@@ -18,7 +18,9 @@
 
     {# Bootstrap #}
     <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
-    <script src="bootstrap/js/bootstrap.min.js"></script>
+    {# <script src="bootstrap/js/bootstrap.min.js"></script>
+       BootStrap > 5.0 destroys $.tooltip() function
+       or maybe JQuery just sucks #}
 
     {# jQuery UI #}
     <link rel="stylesheet" href="jquery-ui/jquery-ui.min.css">
@@ -66,7 +68,7 @@
 
         </div>
 
-        {# Container for the pavo status informations #}
+        {# Container for the pavo status information #}
         <div id="pavo-status">
             <h2>Status</h2>
 
