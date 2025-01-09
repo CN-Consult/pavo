@@ -43,6 +43,7 @@
     <script src="javascript/util/Utils.js"></script>
     <script src="javascript/index/TimeProgressBar.js"></script>
     <script src="javascript/index/JsonEditorDialog.js"></script>
+    <script src="javascript/index/CookieEditorDialog.js"></script>
     <script src="javascript/index.js"></script>
 
     {# Custom styles #}
@@ -98,6 +99,12 @@
         <div id="dialog-confirm-configuration-save" title="Konfiguration speichern?">
             <p><i class="fas fa-exclamation-triangle"></i> Die aktuelle Konfiguration wird überschrieben. Fortfahren?</p>
             <p><i class="fas fa-info-circle"></i> Die neue Konfiguration wird erst beim nächsten Neustart der Anwendung übernommen</p>
+        </div>
+        <div id="dialog-cookie-editor">
+            <div id="cookie-editor"></div>
+        </div>
+        <div id="dialog-confirm-cookie-save" title="Cookies speichern?">
+            <p><i class="fas fa-exclamation-triangle"></i> Die Cookies werden überschrieben. Fortfahren?</p>
         </div>
 
     </main>

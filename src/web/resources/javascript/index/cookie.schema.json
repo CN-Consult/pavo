@@ -1,0 +1,56 @@
+{
+  "title": "Cookie Editor",
+  "type": "object",
+
+  "definitions": {
+    "cookies": {
+      "type": "array",
+      "items": {
+        "name": "Cookie",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the cookie"
+          },
+          "value": {
+            "type": "string",
+            "description": "The name of the cookie"
+          },
+          "domain": {
+            "type": "string",
+            "description": "value"
+          },
+          "hostOnly": {
+            "type": "boolean",
+            "description": "value"
+          },
+          "path": {
+            "type": "string",
+            "description": "value"
+          },
+          "secure": {
+            "type": "boolean",
+            "description": "value"
+          },
+          "httpOnly": {
+            "type": "boolean",
+            "description": "value"
+          },
+          "session": {
+            "type": "boolean",
+            "description": "value"
+          },
+          "expirationDate": {
+            "type": "number",
+            "description": "value"
+          },
+          "sameSite": {
+            "type": "string",
+            "description": "value"
+          }
+        }
+      }
+    }
+  }
+}

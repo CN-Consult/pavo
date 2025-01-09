@@ -96,7 +96,8 @@ section#windows-status div.window-configuration:not(:last-child) {
 table.page-list tr.defined-page td.page-name {
     color: #00E;
 }
-table.page-list tr.defined-page:hover {
+table.page-list tr.defined-page:hover td.page-name,
+table.page-list tr.defined-page:hover td.page-type {
     cursor: pointer;
 }
 table.page-list td {

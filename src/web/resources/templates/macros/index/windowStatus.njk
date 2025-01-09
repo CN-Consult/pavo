@@ -37,7 +37,7 @@
         <hr>
 
         <h4>Seiten</h4>
-        <table class="page-list"
+        <table class="page-list w-100"
                data-current-page="{{ _windowStatus.currentPage }}"
                data-remaining-display-time="{{ _windowStatus.remainingDisplayTime }}">
             {% set pageDefaults = _windowStatus.configuration.pageDefaults %}
@@ -62,7 +62,8 @@
                     <td class="page-name" data-toggle="tooltip" title="Umschalten auf {{ page.url }}">
                         {% if page.name %}{{ page.name }}{% else %}{{ page.url }}{% endif %}
                     </td>
-                    <td class="remaining-time"></td>
+                    <td><div class="remaining-time"></div></td>
+                    <td><button onclick="getCookies({{ _windowIndex }}, {{ pageIndex }})">Cookies</button></td>
                 </tr>
             {% endfor %}
 

@@ -233,6 +233,46 @@ class BrowserWindowManager
         this.browserWindow.webContents.loadURL("about:blank");
     }
 
+    getCookiesForPage(_pageId) {
+        const cookieDomain = this.parentPageDisplayer.getPageList().getPage(_pageId).cookieDomain;
+        const browserView = this.pageBrowserViews[_pageId];
+        return this.browserWindow.webContents.session.cookies.get({domain: cookieDomain});
+    }
+
+    updateCookies(_pageId, _cookies) {
+        // We need here the URL for the cookies
+        const url = this.parentPageDisplayer.pageList.getPage(_pageId).url;
+        console.log('We are using URL: ' + url);
+
+        // 1st delete all old cookies for this URL
+        this.browserWindow.webContents.session.cookies.get({url: url})
+            .then((cookies) => {
+                cookies.forEach(oldCookie => {
+                    this.browserWindow.webContents.session.cookies.remove(url, oldCookie.name)
+                        .then(() => {
+                            // ToDo: remove debug log line
+                            // console.log('Removed cookie: ' + url + ' \'' + oldCookie.name + '\'');
+                        })
+                        .catch((err) => console.error(err));
+                });
+
+                // ToDo: remove debug log line
+                // console.log('Start inserting cookies!');
+
+                // 2nd insert cookies
+                // ToDo: DANGER!! Race condition! To many .then() for write clean code structure! Need a custom promise!
+                _cookies.forEach(newCookie => {
+                    newCookie.url = url;
+                    this.browserWindow.webContents.session.cookies.set(newCookie)
+                        .then(() => {})
+                        .catch((err) => console.error(err));
+                });
+            })
+            .catch((error) => {
+                // No log instance... no logging. We should catch all Promise errors. Otherwise, those errors appear
+                // in the frontend.
+            });
+    }
 
     // Private Methods
 

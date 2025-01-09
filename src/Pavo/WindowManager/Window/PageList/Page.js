@@ -65,6 +65,12 @@ class Page extends EventEmitter
         let parsedUrl = url.parse(this.url);
         this.baseUrl = parsedUrl.protocol + "//" + parsedUrl.host + parsedUrl.pathname;
 
+        let offset = parsedUrl.host.split('.').length - 2;
+        if (offset < 0) offset = 0;
+        this.cookieDomain = parsedUrl.host.split('.')
+            .slice(offset)
+            .join('.');
+
         // Auto login
         this.isLoginDone = false;
         if (_pageConfiguration.autoLogin) this.automaticLogin = new AutomaticLogin(_pageConfiguration.autoLogin, this);

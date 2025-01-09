@@ -13,6 +13,7 @@ let pageFetchedTimeStamp = Date.now();
  * @type JsonEditorDialog jsonEditorDialog
  */
 let jsonEditorDialog;
+let cookieEditorDialog;
 
 let timeProgressBars = [];
 let socket = io.connect("http://" + location.host);
@@ -21,12 +22,17 @@ $(document).ready(function() {
 
     jsonEditorDialog = new JsonEditorDialog(socket);
     jsonEditorDialog.init($("div#dialog-json-editor"), $("div#dialog-confirm-configuration-save"));
+    cookieEditorDialog = new CookieEditorDialog(socket);
+    cookieEditorDialog.init($("div#dialog-cookie-editor"), $("div#dialog-confirm-cookie-save"));
 
     $("button.toggle-page-switch-loop").on("click", togglePageSwitchLoop);
     $("form.load-url-form").on("submit", loadUrlIntoWindow);
     $("form.show-text-form").on("submit", showTextInWindow);
     $("button.reload-window").on("click", reloadWindows);
-    $("div.window-configuration table.page-list tr.defined-page").on("click", switchToPage);
+
+    $("div.window-configuration table.page-list tr.defined-page td.page-type").on("click", switchToPage);
+    $("div.window-configuration table.page-list tr.defined-page td.page-name").on("click", switchToPage);
+
     $("div#pavo-overview button#edit-pavo-config").on("click", showJsonEditor);
     $("div#pavo-overview button#restart-pavo").on("click", restartPavo);
 
@@ -66,7 +72,7 @@ function initializeTimeProgressBars()
         let isPageSwitchLoopActive = windowConfiguration.data("page-switch-loop-active");
 
         timeProgressBars[_windowConfigurationDivIndex] = new TimeProgressBar();
-        timeProgressBars[_windowConfigurationDivIndex].initialize(pageList.find("td.remaining-time"), remainingDisplayTime);
+        timeProgressBars[_windowConfigurationDivIndex].initialize(pageList.find("div.remaining-time"), remainingDisplayTime);
 
         showRemainingTime(_windowConfigurationDivIndex, currentPage, remainingDisplayTime, isPageSwitchLoopActive);
     });
@@ -272,7 +278,7 @@ function showRemainingTime(_windowId, _pageId, _numberOfRemainingMilliseconds, _
 {
     timeProgressBars[_windowId].stop();
 
-    timeProgressBars[_windowId].initialize($("div#window-configuration-" + _windowId + " table.page-list tr#page-" + _windowId + "-" + _pageId + " td.remaining-time"), _numberOfRemainingMilliseconds);
+    timeProgressBars[_windowId].initialize($("div#window-configuration-" + _windowId + " table.page-list tr#page-" + _windowId + "-" + _pageId + " div.remaining-time"), _numberOfRemainingMilliseconds);
 
     if (_startCountdown) timeProgressBars[_windowId].start();
     else timeProgressBars[_windowId].initializeCountDownElement();
@@ -338,4 +344,18 @@ function showSpecialPage(_windowId, _typeIdentifier, _pageName)
     specialPageTableRow.find("td.page-name").text(_pageName);
 
     setActivePage(_windowId, windowPages.length - 1);
+}
+
+function getCookies(_windowId, _pageId) {
+    console.log('Trying to get cookies for Window ' + _windowId + ' and page ' + _pageId + '!');
+    socket.once("cookies2Page", (_data) => {
+        this.openCookiesDialog(_data.cookies, _windowId, _pageId);
+    });
+    socket.emit('getPageCookies', { windowId: _windowId, pageId: _pageId });
+}
+
+function openCookiesDialog(_cookies, _windowId, _pageId) {
+    console.log('received cookies');
+    console.log(_cookies);
+    cookieEditorDialog.show({cookies: _cookies}, _windowId, _pageId);
 }
