@@ -46,6 +46,42 @@ log4js.configure({
 
 let pavo = new Pavo();
 let webServer = new WebServer();
+const appStartTime = new Date();
+
+let globalInterval = setInterval(() => {
+    const runtime = formatUptime(process.uptime());
+    const mem = process.memoryUsage();
+    console.log('Pavo Memory usage check');
+    console.log('-----------------------');
+    console.log('  Start time: ' + appStartTime);
+    console.log('  Uptime = ' + runtime);
+    console.log('  RSS: ' + (Math.ceil(mem.rss/1024)).toLocaleString('de') + ' KB');
+    console.log('  Heap used: ' + (Math.ceil(mem.heapUsed/1024)).toLocaleString('de') + 'KB');
+    console.log('  Heap total: ' + (Math.ceil(mem.heapTotal/1024)).toLocaleString('de') + ' KB');
+    console.log('  External: ' + Math.ceil((mem.external/1024)).toLocaleString('de') + ' KB');
+}, 600000);
+
+process.on('warning', e => console.warn(e.stack));
+
+/**
+ * Formats the uptime into a human-readable format.
+ * @param seconds
+ * @returns {string}
+ */
+function formatUptime(seconds) {
+    const days = Math.floor(seconds / (24 * 60 * 60));
+    seconds %= (24 * 60 * 60);
+    const hours = Math.floor(seconds / (60 * 60));
+    seconds %= (60 * 60);
+    const minutes = Math.floor(seconds / 60);
+    seconds %= 60;
+    seconds = Math.round(seconds);
+
+    return days.toString().padStart(2, '0') + 'd ' +
+        hours.toString().padStart(2, '0') + ':' +
+        minutes.toString().padStart(2, '0') + ':' +
+        seconds.toString().padStart(2, '0');
+}
 
 /**
  * Initializes the pavo app.

@@ -33,6 +33,8 @@ class BrowserWindowManager
         this.browserWindowConfiguration = _browserWindowConfiguration;
         this.pageBrowserViews = [];
 
+        this.debugCounter = 0;
+
         this.browserWindow = this.createBrowserWindow();
         this.webContentsDataInjector = new WebContentsDataInjector(
             this.parentPageDisplayer.getParentWindow().getParentWindowManager().getParentPavo().getConfigDirectoryPath(),
@@ -59,6 +61,8 @@ class BrowserWindowManager
         let self = this;
         return new Promise(function(_resolve){
 
+            this.debugCounter++;
+            console.log("Adding a 'closed' listener to the browser window. " + this.debugCounter);
             self.browserWindow.on("closed", function(){
                 _resolve("BrowserWindowManager destroyed");
             });
@@ -121,6 +125,7 @@ class BrowserWindowManager
     showPage(_page)
     {
         let nextBrowserView = this.getBrowserViewForPage(_page);
+        // ToDo: Next code line adds somehow more 'closed' event listeners till exceeding the maximum.
         this.browserWindow.setBrowserView(nextBrowserView);
         nextBrowserView.setBounds({
             x: 0,
